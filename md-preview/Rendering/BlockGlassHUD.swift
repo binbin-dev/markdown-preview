@@ -25,16 +25,18 @@ final class BlockGlassHUD: NSView {
         /// The page's number for the block, unique within its kind.
         var id: Int
         var frame: NSRect
-        /// Diagrams: the zoom level shown, and whether Open in Window works.
+        /// Diagrams: the zoom level shown, whether Open in Window works, and
+        /// whether Fill width is on.
         var level = "100%"
         var hasPopup = false
+        var expanded = false
         /// Code blocks: whether the lines wrap.
         var wrapped = false
     }
 
     /// Runs an action in the page on the block shown, named by its kind and
-    /// id: for a diagram `out`, `reset`, `in`, `copy` or `popup`; for a code
-    /// block `wrap` or `copy`.
+    /// id: for a diagram `out`, `reset`, `in`, `width`, `copy` or `popup`;
+    /// for a code block `wrap` or `copy`.
     var perform: ((Block, String) -> Void)?
     /// The web view under the pill, which scrolls when the wheel turns over it.
     weak var scrollTarget: NSView?
@@ -51,12 +53,13 @@ final class BlockGlassHUD: NSView {
     private let levelButton = HUDButton(act: "reset", width: 44)
     private let zoomIn = HUDButton(act: "in", width: 24)
     private let wrapButton = HUDButton(act: "wrap", width: 24)
+    private let widthButton = HUDButton(act: "width", width: 24)
     private let copyButton = HUDButton(act: "copy", width: 24)
     private let popupButton = HUDButton(act: "popup", width: 24)
     private let zoomGlass = NSGlassEffectView()
     private let actionsGlass = NSGlassEffectView()
     private var current: Block?
-    private var laidOut: (Kind, String, Bool, Bool)?
+    private var laidOut: (Kind, String, Bool, Bool, Bool)?
     private var pillSize: NSSize = .zero
     private var copiedReset: DispatchWorkItem?
 
@@ -66,10 +69,12 @@ final class BlockGlassHUD: NSView {
 
         zoomOut.setSymbol("minus", label: NSLocalizedString("Zoom Out", comment: "Mermaid diagram control"))
         zoomIn.setSymbol("plus", label: NSLocalizedString("Zoom In", comment: "Mermaid diagram control"))
+        widthButton.setSymbol("arrow.left.and.right",
+                              label: NSLocalizedString("Fill width", comment: "Mermaid diagram fill width button"))
         showCopyIcon()
-        popupButton.setSymbol("arrow.down.left.and.arrow.up.right",
-                              label: NSLocalizedString("Open in Window", comment: "Mermaid diagram control"))
-        for button in [zoomOut, levelButton, zoomIn, wrapButton, copyButton, popupButton] {
+        popupButton.setGlyph("⛶",
+                             label: NSLocalizedString("Open in Window", comment: "Mermaid diagram control"))
+        for button in [zoomOut, levelButton, zoomIn, wrapButton, widthButton, copyButton, popupButton] {
             button.onPress = { [weak self] act in
                 guard let self, let block = self.current else { return }
                 self.perform?(block, act)
@@ -80,7 +85,7 @@ final class BlockGlassHUD: NSView {
         // Zoom and the other actions are two pills side by side; a code
         // block shows only the second.
         Self.fill(zoomGlass, with: [zoomOut, levelButton, zoomIn])
-        Self.fill(actionsGlass, with: [wrapButton, copyButton, popupButton])
+        Self.fill(actionsGlass, with: [wrapButton, widthButton, copyButton, popupButton])
         let pills = NSStackView(views: [zoomGlass, actionsGlass])
         pills.orientation = .horizontal
         pills.alignment = .centerY
@@ -127,14 +132,21 @@ final class BlockGlassHUD: NSView {
         current = block
         // While the page scrolls only the frame changes: lay out again only
         // for new contents.
-        let content = (block.kind, block.level, block.hasPopup, block.wrapped)
+        let content = (block.kind, block.level, block.hasPopup, block.wrapped, block.expanded)
         if laidOut.map({ $0 != content }) ?? true {
             let isDiagram = block.kind == .diagram
             zoomGlass.isHidden = !isDiagram
             wrapButton.isHidden = isDiagram
+            widthButton.isHidden = !isDiagram
             popupButton.isHidden = !(isDiagram && block.hasPopup)
             if isDiagram {
                 levelButton.setText(block.level, label: NSLocalizedString("Reset zoom", comment: "Mermaid diagram control"))
+                widthButton.setSymbol(
+                    block.expanded ? "arrow.right.and.line.vertical.and.arrow.left" : "arrow.left.and.right",
+                    label: block.expanded
+                        ? NSLocalizedString("Fit diagram", comment: "Mermaid diagram fit button")
+                        : NSLocalizedString("Fill width", comment: "Mermaid diagram fill width button")
+                )
             } else {
                 wrapButton.setImage(Self.codeIcons[block.wrapped ? "unwrap" : "wrap"],
                                     label: block.wrapped
@@ -323,6 +335,16 @@ private final class HUDButton: NSView {
 
     func setText(_ text: String, label: String) {
         textField.stringValue = text
+        imageView.image = nil
+        textField.isHidden = false
+        setLabel(label)
+    }
+
+    /// A text glyph rather than an icon, at the size the page's HUD uses for
+    /// the window button (`⛶`), which no SF Symbol draws the same.
+    func setGlyph(_ glyph: String, label: String) {
+        textField.stringValue = glyph
+        textField.font = .systemFont(ofSize: 14, weight: .regular)
         imageView.image = nil
         textField.isHidden = false
         setLabel(label)

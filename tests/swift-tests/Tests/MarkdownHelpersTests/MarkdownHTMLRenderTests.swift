@@ -1175,6 +1175,10 @@ final class MarkdownHTMLRenderTests: XCTestCase {
             rendered.articleHTML
         )
         XCTAssertTrue(
+            rendered.articleHTML.contains(">⛶</button>"),
+            rendered.articleHTML
+        )
+        XCTAssertTrue(
             rendered.articleHTML.contains(#"class="mermaid-hud-group mermaid-hud-zoom""#),
             rendered.articleHTML
         )
@@ -1186,11 +1190,30 @@ final class MarkdownHTMLRenderTests: XCTestCase {
             rendered.articleHTML.contains(#"data-mm-act="copy" tabindex="-1" aria-label="Copy" title="Copy"></button>"#),
             rendered.articleHTML
         )
+        XCTAssertTrue(
+            rendered.articleHTML.contains(
+                #"data-mm-act="width" tabindex="-1" aria-label="Fill width" aria-pressed="false" title="Fill width"></button>"#
+            ),
+            rendered.articleHTML
+        )
+        XCTAssertTrue(
+            rendered.articleHTML.contains(#"class="mermaid-hud-btn mermaid-hud-width""#),
+            rendered.articleHTML
+        )
+        // Fill width is a horizontal double arrow so it does not read as the
+        // window button's expand icon.
+        XCTAssertTrue(
+            rendered.html.contains("M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4"),
+            rendered.html
+        )
         // Assert the shared production wiring as well as the emitted controls.
         XCTAssertTrue(MarkdownHTML.mermaidInitWiring.contains("kind: 'mermaidPopup'"))
         XCTAssertTrue(MarkdownHTML.mermaidInitWiring.contains("function openPopup"))
         XCTAssertTrue(MarkdownHTML.mermaidInitWiring.contains("case 'popup'"))
         XCTAssertTrue(MarkdownHTML.mermaidInitWiring.contains("openPopup(figure)"))
+        XCTAssertTrue(MarkdownHTML.mermaidInitWiring.contains("function toggleWidth"))
+        XCTAssertTrue(MarkdownHTML.mermaidInitWiring.contains("case 'width'"))
+        XCTAssertTrue(MarkdownHTML.mermaidInitWiring.contains("mermaid-width-expanded"))
     }
 
     @MainActor
@@ -1410,6 +1433,10 @@ final class MarkdownHTMLRenderTests: XCTestCase {
             window.__posted = [];
             window.mdpDiagramHUDAction('copy', shown.id);
             const copied = window.__posted.find((m) => m.kind === 'copyCode');
+            window.__posted = [];
+            window.mdpDiagramHUDAction('width', shown.id);
+            const widened = last();
+            const widthExpanded = figure.classList.contains('mermaid-width-expanded');
             const htmlHUD = getComputedStyle(figure.querySelector('.mermaid-hud'));
             figure.dispatchEvent(new PointerEvent('pointerleave'));
             const left = last();
@@ -1422,7 +1449,8 @@ final class MarkdownHTMLRenderTests: XCTestCase {
                 afterLeaveVisible: afterLeave?.visible, afterLeaveLevel: afterLeave?.level,
                 shownVisible: shown?.visible, shownLevel: shown?.level, shownPopup: shown?.popup,
                 shownWidth: shown?.width, shownID: shown?.id, zoomedLevel: zoomed?.level, focused,
-                copied: copied?.value, htmlHUDOpacity: htmlHUD.opacity, htmlHUDDisplay: htmlHUD.display,
+                copied: copied?.value, widenedExpanded: widened?.expanded, widthExpanded,
+                htmlHUDOpacity: htmlHUD.opacity, htmlHUDDisplay: htmlHUD.display,
                 leftVisible: left?.visible,
                 levelAfterLeave: figure.querySelector('.mermaid-hud-level').textContent
             });
@@ -1437,6 +1465,8 @@ final class MarkdownHTMLRenderTests: XCTestCase {
         XCTAssertEqual(state["zoomedLevel"] as? String, "125%", json)
         XCTAssertEqual(state["focused"] as? Bool, false, "a native click must not draw the figure's focus ring")
         XCTAssertEqual(state["copied"] as? String, "flowchart LR\n    A --> B", json)
+        XCTAssertEqual(state["widenedExpanded"] as? Bool, true, json)
+        XCTAssertEqual(state["widthExpanded"] as? Bool, true, json)
         XCTAssertNotNil(state["shownID"] as? Int, json)
         // Unseen, but still in the page for the keyboard.
         XCTAssertEqual(state["htmlHUDOpacity"] as? String, "0", json)
@@ -2173,7 +2203,10 @@ final class MarkdownHTMLRenderTests: XCTestCase {
     }
 
     @MainActor
-    func testWideMermaidDiagramFillsTheColumnInTheScreenLayout() async throws {
+    private func measureMermaidSizing(
+        variables: [String: String],
+        extraScript: String = ""
+    ) async throws -> MermaidSizingMetrics {
         let rendered = MarkdownHTML.render(
             markdown: """
             ```mermaid
@@ -2191,17 +2224,29 @@ final class MarkdownHTMLRenderTests: XCTestCase {
                 .components(separatedBy: "</style>")
                 .first
         )
+        let setters = variables
+            .map { "figure.style.setProperty('\($0.key)', '\($0.value)');" }
+            .joined(separator: "\n")
         // On screen the article is a flex column. The figure's contents are
-        // all absolutely positioned, so a figure sized by its content alone
-        // lays out at 0 x 0 and the diagram draws nowhere.
+        // all absolutely positioned, so the variables it gets from the
+        // renderer are what keep it from laying out at 0 x 0.
         let html = """
         <!DOCTYPE html>
         <html><head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>\(stylesheet)</style>
+        <script>
+        window.requestAnimationFrame = (callback) => callback();
+        window.IntersectionObserver = class { observe() {} unobserve() {} };
+        window.pele = { render() {
+            return { svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"></svg>' };
+        } };
+        </script>
         </head><body><article class="markdown-body">\(rendered.articleHTML)</article>
         <script>
-        document.querySelector('.mermaid-figure').style.setProperty('--mm-aspect', '2 / 1');
+        const __mdpMermaid = \(MarkdownHTML.mermaidInitWiring);
+        __mdpMermaid.bootstrap();
+        window.__mdSizingFigure = document.querySelector('.mermaid-figure');
         </script>
         </body></html>
         """
@@ -2210,26 +2255,113 @@ final class MarkdownHTMLRenderTests: XCTestCase {
         while webView.isLoading {
             try await Task.sleep(for: .milliseconds(10))
         }
-
+        // Draw first (the stub gives a 400 x 200 viewBox), then set the
+        // sizing variables the layout under test expects.
+        _ = try await webView.callAsyncJavaScript(
+            "await window.MdPreview.mermaidRenderAll(); return true;",
+            contentWorld: .page
+        )
+        _ = try await webView.evaluateJavaScript("""
+        (() => {
+            const figure = window.__mdSizingFigure;
+            \(setters)
+            \(extraScript)
+            return true;
+        })()
+        """)
         let result = try await webView.evaluateJavaScript("""
         (() => {
             const article = document.querySelector('.markdown-body');
-            const figure = document.querySelector('.mermaid-figure').getBoundingClientRect();
+            const articleRect = article.getBoundingClientRect();
+            const figure = document.querySelector('.mermaid-figure');
+            const rect = figure.getBoundingClientRect();
             return JSON.stringify({
                 display: getComputedStyle(article).display,
                 articleWidth: article.clientWidth,
-                figureWidth: figure.width,
-                figureHeight: figure.height,
+                articleCenter: articleRect.left + articleRect.width / 2,
+                figureWidth: rect.width,
+                figureHeight: rect.height,
+                figureCenter: rect.left + rect.width / 2,
+                pressed: figure.querySelector('[data-mm-act="width"]').getAttribute('aria-pressed'),
+                maxHeight: getComputedStyle(figure).maxHeight,
             });
         })()
         """)
         let json = try XCTUnwrap(result as? String)
-        let metrics = try JSONDecoder().decode(WideMermaidMetrics.self, from: Data(json.utf8))
+        return try JSONDecoder().decode(MermaidSizingMetrics.self, from: Data(json.utf8))
+    }
+
+    @MainActor
+    func testMermaidDiagramKeepsTheFullWidthTrayAtItsNaturalHeight() async throws {
+        let metrics = try await measureMermaidSizing(variables: [
+            "--mm-aspect": "2 / 1",
+            "--mm-height": "200px",
+            "--mm-max-height": "600px",
+        ])
 
         XCTAssertEqual(metrics.display, "flex")
+        XCTAssertEqual(metrics.figureWidth, metrics.articleWidth, accuracy: 1)
+        XCTAssertEqual(metrics.figureHeight, 232, accuracy: 1)
+        XCTAssertEqual(metrics.figureCenter, metrics.articleCenter, accuracy: 1)
+    }
+
+    @MainActor
+    func testWideMermaidDiagramUsesTheColumnWidth() async throws {
+        let metrics = try await measureMermaidSizing(variables: [
+            "--mm-aspect": "4 / 1",
+            "--mm-height": "300px",
+            "--mm-max-height": "600px",
+        ])
+
         XCTAssertGreaterThan(metrics.articleWidth, 0)
         XCTAssertEqual(metrics.figureWidth, metrics.articleWidth, accuracy: 1)
-        XCTAssertEqual(metrics.figureHeight, metrics.articleWidth / 2, accuracy: 1)
+        XCTAssertEqual(metrics.figureHeight, metrics.articleWidth / 4, accuracy: 1)
+        XCTAssertEqual(metrics.figureCenter, metrics.articleCenter, accuracy: 1)
+    }
+
+    @MainActor
+    func testTallMermaidDiagramKeepsTheFullWidthTrayAtTheHeightCeiling() async throws {
+        let metrics = try await measureMermaidSizing(variables: [
+            "--mm-aspect": "400 / 1600",
+            "--mm-height": "1600px",
+            "--mm-max-height": "600px",
+        ])
+
+        XCTAssertEqual(metrics.figureWidth, metrics.articleWidth, accuracy: 1)
+        XCTAssertEqual(metrics.figureHeight, 600, accuracy: 1)
+        XCTAssertEqual(metrics.figureCenter, metrics.articleCenter, accuracy: 1)
+    }
+
+    @MainActor
+    func testFillWidthGrowsTheTrayHeightAndTogglesBack() async throws {
+        let naturalVariables = [
+            "--mm-aspect": "2 / 1",
+            "--mm-height": "200px",
+            "--mm-max-height": "600px",
+        ]
+        let click = "figure.querySelector('[data-mm-act=\"width\"]').click();"
+
+        let natural = try await measureMermaidSizing(variables: naturalVariables)
+        XCTAssertEqual(natural.figureWidth, natural.articleWidth, accuracy: 1)
+        XCTAssertEqual(natural.figureHeight, 232, accuracy: 1)
+
+        let expanded = try await measureMermaidSizing(
+            variables: naturalVariables,
+            extraScript: click
+        )
+        XCTAssertEqual(expanded.figureWidth, expanded.articleWidth, accuracy: 1)
+        XCTAssertEqual(expanded.figureHeight, expanded.articleWidth / 2, accuracy: 1)
+        XCTAssertEqual(expanded.pressed, "true")
+        XCTAssertEqual(expanded.maxHeight, "none")
+
+        let restored = try await measureMermaidSizing(
+            variables: naturalVariables,
+            extraScript: click + click
+        )
+        XCTAssertEqual(restored.figureWidth, restored.articleWidth, accuracy: 1)
+        XCTAssertEqual(restored.figureHeight, 232, accuracy: 1)
+        XCTAssertEqual(restored.pressed, "false")
+        XCTAssertEqual(restored.maxHeight, "232px")
     }
 
     @MainActor
@@ -3120,11 +3252,15 @@ private struct TopLevelInlineMetrics: Decodable {
     let buttonWidth: CGFloat
 }
 
-private struct WideMermaidMetrics: Decodable {
+private struct MermaidSizingMetrics: Decodable {
     let display: String
     let articleWidth: CGFloat
+    let articleCenter: CGFloat
     let figureWidth: CGFloat
     let figureHeight: CGFloat
+    let figureCenter: CGFloat
+    let pressed: String
+    let maxHeight: String
 }
 
 private struct MermaidHUDMetrics: Decodable {

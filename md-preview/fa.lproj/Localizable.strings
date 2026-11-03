@@ -146,6 +146,8 @@
 "Copy" = "کپی";
 "Copy Markdown source to clipboard" = "کپی منبع Markdown در کلیپ‌بورد";
 "Copied" = "کپی شد";
+"Fill width" = "پر کردن عرض";
+"Fit diagram" = "برازش نمودار";
 "Edit" = "ویرایش";
 "Edit document" = "ویرایش سند";
 "Stop editing and return to preview" = "توقف ویرایش و بازگشت به پیش‌نمایش";

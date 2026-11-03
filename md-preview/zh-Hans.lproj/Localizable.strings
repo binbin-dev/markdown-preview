@@ -146,6 +146,8 @@
 "Copy" = "拷贝";
 "Copy Markdown source to clipboard" = "将 Markdown 源文本拷贝到剪贴板";
 "Copied" = "已拷贝";
+"Fill width" = "填满宽度";
+"Fit diagram" = "适应图表";
 "Edit" = "编辑";
 "Edit document" = "编辑文稿";
 "Stop editing and return to preview" = "停止编辑并返回预览";

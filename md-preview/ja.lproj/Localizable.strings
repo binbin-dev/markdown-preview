@@ -146,6 +146,8 @@
 "Copy" = "コピー";
 "Copy Markdown source to clipboard" = "Markdown ソースをクリップボードにコピー";
 "Copied" = "コピーしました";
+"Fill width" = "幅に合わせる";
+"Fit diagram" = "ダイアグラム全体を表示";
 "Edit" = "編集";
 "Edit document" = "書類を編集";
 "Stop editing and return to preview" = "編集を終了してプレビューに戻る";

@@ -146,6 +146,8 @@
 "Copy" = "Copy";
 "Copy Markdown source to clipboard" = "Copy Markdown source to clipboard";
 "Copied" = "Copied";
+"Fill width" = "Fill width";
+"Fit diagram" = "Fit diagram";
 "Edit" = "Edit";
 "Edit document" = "Edit document";
 "Stop editing and return to preview" = "Stop editing and return to preview";

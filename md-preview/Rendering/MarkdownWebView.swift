@@ -347,6 +347,7 @@ final class MarkdownWebView: NSView, WKNavigationDelegate {
                        frame: convert(inWebView, from: webView),
                        level: message["level"] as? String ?? "100%",
                        hasPopup: message["popup"] as? Bool ?? false,
+                       expanded: message["expanded"] as? Bool ?? false,
                        wrapped: message["wrapped"] as? Bool ?? false),
                  scale: zoom,
                  visibleTop: top)

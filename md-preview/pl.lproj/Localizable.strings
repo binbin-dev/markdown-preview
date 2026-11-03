@@ -146,6 +146,8 @@
 "Copy" = "Kopiuj";
 "Copy Markdown source to clipboard" = "Kopiuj źródło Markdown do schowka";
 "Copied" = "Skopiowano";
+"Fill width" = "Wypełnij szerokość";
+"Fit diagram" = "Dopasuj diagram";
 "Edit" = "Edycja";
 "Edit document" = "Edytuj dokument";
 "Stop editing and return to preview" = "Zakończ edycję i wróć do podglądu";

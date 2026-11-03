@@ -164,9 +164,11 @@ nonisolated extension MarkdownHTML {
     /// tray spans the column like a code block; its height follows the
     /// diagram's aspect ratio, capped by the window and by the diagram's own
     /// height plus the stage padding, so a diagram narrower than the column
-    /// draws at its natural size instead of scaling up to the width.
+    /// draws at its natural size instead of scaling up to the width. The
+    /// ceiling is high enough for ordinary tall diagrams to keep their natural
+    /// height; Fill width removes it.
     static let diagramFigureSizingCSS = """
-    --mm-max-height: min(70vh, 720px);
+    --mm-max-height: min(150vh, 1600px);
     width: 100%;
     aspect-ratio: var(--mm-aspect, 4 / 3);
     max-height: min(var(--mm-max-height), calc(var(--mm-height, var(--mm-max-height)) + \(2 * diagramStagePadding)px));
@@ -884,6 +886,12 @@ nonisolated extension MarkdownHTML {
         contain: layout paint;
         \(diagramVariablesCSS)
     }
+    /* Fill width: the tray is already the column's width, so dropping the
+       height cap grows it to the diagram's aspect ratio and pushes the
+       document below down, as it did before the button moved to Copy. */
+    .mermaid-figure.mermaid-width-expanded {
+        max-height: none;
+    }
     .mermaid-figure:focus-visible {
         box-shadow: 0 0 0 3px color-mix(in srgb, AccentColor 60%, transparent);
     }
@@ -969,9 +977,14 @@ nonisolated extension MarkdownHTML {
     }
     .mermaid-hud-btn[data-mm-act="out"] { --mm-icon: \(diagramHUDIcon("<path d='M6 12h12'/>")); }
     .mermaid-hud-btn[data-mm-act="in"] { --mm-icon: \(diagramHUDIcon("<path d='M12 6v12M6 12h12'/>")); }
+    .mermaid-hud-btn[data-mm-act="width"] { --mm-icon: \(diagramHUDIcon("<path d='M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4'/>")); }
+    .mermaid-figure.mermaid-width-expanded .mermaid-hud-btn[data-mm-act="width"] { --mm-icon: \(diagramHUDIcon("<path d='M4 12h4M16 12h4M8 8l4 4-4 4M16 8l-4 4 4 4'/>")); }
     .mermaid-hud-btn[data-mm-act="copy"] { --mm-icon: \(diagramHUDIcon(codeIconShapes["copy"] ?? "")); }
     .mermaid-hud-btn[data-mm-act="copy"].is-copied { --mm-icon: \(diagramHUDIcon(codeIconShapes["check"] ?? "")); }
-    .mermaid-hud-btn[data-mm-act="popup"] { --mm-icon: \(diagramHUDIcon("<path d='M14 4h6v6M10 20H4v-6M20 4l-6 6M4 20l6-6'/>")); }
+    /* The 0.0.69 window glyph, kept as text: 0.0.70's diagonal-arrow icon
+       reads too much like Fill width. */
+    .mermaid-hud-btn[data-mm-act="popup"]::before { content: none; }
+    .mermaid-hud-btn[data-mm-act="popup"] { font-size: 16px; line-height: 12px; }
     @media (prefers-reduced-motion: reduce) {
         .mermaid-hud { transition: none; }
     }

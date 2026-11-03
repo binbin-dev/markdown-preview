@@ -45,6 +45,7 @@ nonisolated extension MarkdownHTML {
         let resetZoom = htmlEscape(NSLocalizedString("Reset zoom", comment: "Mermaid diagram control"))
         let zoomIn = htmlEscape(NSLocalizedString("Zoom In", comment: "Mermaid diagram control"))
         let copy = htmlEscape(NSLocalizedString("Copy", comment: "Mermaid diagram copy button"))
+        let fillWidth = htmlEscape(NSLocalizedString("Fill width", comment: "Mermaid diagram fill width button"))
         // The popup is app-only — `MarkdownWebView` compiles its `mermaidPopup`
         // handler out of the Quick Look extension, so emitting the button there
         // would leave a control that does nothing when clicked.
@@ -53,7 +54,7 @@ nonisolated extension MarkdownHTML {
         #else
         let openWindow = htmlEscape(NSLocalizedString("Open in Window", comment: "Mermaid diagram control"))
         let popupButton = """
-        <button type="button" class="mermaid-hud-btn mermaid-hud-popup" data-mm-act="popup" tabindex="-1" aria-label="\(openWindow)" title="\(openWindow)"></button>
+        <button type="button" class="mermaid-hud-btn mermaid-hud-popup" data-mm-act="popup" tabindex="-1" aria-label="\(openWindow)" title="\(openWindow)">⛶</button>
         """
         #endif
         for match in matches {
@@ -73,6 +74,7 @@ nonisolated extension MarkdownHTML {
             <button type="button" class="mermaid-hud-btn" data-mm-act="in" tabindex="-1" aria-label="\(zoomIn)"></button>
             </div>
             <div class="mermaid-hud-group mermaid-hud-actions">
+            <button type="button" class="mermaid-hud-btn mermaid-hud-width" data-mm-act="width" tabindex="-1" aria-label="\(fillWidth)" aria-pressed="false" title="\(fillWidth)"></button>
             <button type="button" class="mermaid-hud-btn mermaid-hud-copy" data-mm-act="copy" tabindex="-1" aria-label="\(copy)" title="\(copy)"></button>
             \(popupButton)
             </div>
@@ -105,7 +107,9 @@ nonisolated extension MarkdownHTML {
         zoomIn: \(javaScriptStringLiteral(NSLocalizedString("Zoom In", comment: "Mermaid diagram control"))),
         resetZoom: \(javaScriptStringLiteral(NSLocalizedString("Reset zoom", comment: "Mermaid diagram control"))),
         copy: \(javaScriptStringLiteral(NSLocalizedString("Copy", comment: "Mermaid diagram copy button"))),
-        copied: \(javaScriptStringLiteral(NSLocalizedString("Copied", comment: "Mermaid diagram copy confirmation")))
+        copied: \(javaScriptStringLiteral(NSLocalizedString("Copied", comment: "Mermaid diagram copy confirmation"))),
+        fillWidth: \(javaScriptStringLiteral(NSLocalizedString("Fill width", comment: "Mermaid diagram fill width button"))),
+        fitDiagram: \(javaScriptStringLiteral(NSLocalizedString("Fit diagram", comment: "Mermaid diagram fit button")))
     }
     """
 
@@ -263,8 +267,11 @@ nonisolated extension MarkdownHTML {
                 const surface = svg.parentElement || svg;
                 surface.style.transformOrigin = '0 0';
 
-                // Stable layout: figure claims height from the diagram's aspect ratio,
-                // capped by max-height so massive diagrams don't push the page.
+                // Stable layout: the figure keeps the column's width and claims
+                // height from the diagram's aspect ratio, capped by max-height
+                // so massive diagrams don't push the page. The cap leaves room
+                // for the stage padding, so a diagram narrower than the column
+                // draws at its natural size instead of scaling up.
                 if (vbW > 0 && vbH > 0) {
                     figure.style.setProperty('--mm-aspect', vbW + ' / ' + vbH);
                     figure.style.setProperty('--mm-height', vbH + 'px');
@@ -336,7 +343,8 @@ nonisolated extension MarkdownHTML {
             const diagramHUD = makeNativeHUDReporter('diagramHUD', (figure) =>
                 figure.classList.contains('mermaid-error') || !figure.querySelector('.mermaid svg') ? null : {
                     level: figure.querySelector('.mermaid-hud-level')?.textContent || '100%',
-                    popup: !!figure.querySelector('[data-mm-act="popup"]')
+                    popup: !!figure.querySelector('[data-mm-act="popup"]'),
+                    expanded: figure.classList.contains('mermaid-width-expanded')
                 });
             if (diagramHUD) {
                 // No focus here: the click was on the host's glass, and
@@ -446,6 +454,23 @@ nonisolated extension MarkdownHTML {
                 apply(figure, s);
             }
 
+            function toggleWidth(figure) {
+                const expanded = figure.classList.toggle('mermaid-width-expanded');
+                const btn = figure.querySelector('[data-mm-act="width"]');
+                if (btn) {
+                    const label = expanded ? messages.fitDiagram : messages.fillWidth;
+                    btn.setAttribute('aria-label', label);
+                    btn.setAttribute('aria-pressed', String(expanded));
+                    btn.setAttribute('title', label);
+                }
+                reset(figure);
+                requestAnimationFrame(() => {
+                    cacheRect(figure);
+                    window.dispatchEvent(new Event('md-preview-mermaid-rendered'));
+                    if (diagramHUD?.target === figure) diagramHUD.refresh();
+                });
+            }
+
             function step(figure, factor) {
                 const s = states.get(figure);
                 if (!s) return;
@@ -533,6 +558,7 @@ nonisolated extension MarkdownHTML {
                     case 'in':    step(figure, 1.25); break;
                     case 'out':   step(figure, 0.8);  break;
                     case 'reset': reset(figure);      break;
+                    case 'width': toggleWidth(figure); break;
                     case 'popup': openPopup(figure);  break;
                     case 'copy':  copySource(figure); break;
                 }
@@ -564,7 +590,11 @@ nonisolated extension MarkdownHTML {
             const hudLabels = { out: messages.zoomOut, in: messages.zoomIn, reset: messages.resetZoom, copy: messages.copy };
             function labelHud(figure) {
                 figure.querySelectorAll('.mermaid-hud [data-mm-act]').forEach((button) => {
-                    const label = hudLabels[button.dataset.mmAct];
+                    let label = hudLabels[button.dataset.mmAct];
+                    if (button.dataset.mmAct === 'width') {
+                        label = figure.classList.contains('mermaid-width-expanded')
+                            ? messages.fitDiagram : messages.fillWidth;
+                    }
                     if (!label) return;
                     button.setAttribute('aria-label', label);
                     if (button.hasAttribute('title')) button.title = label;

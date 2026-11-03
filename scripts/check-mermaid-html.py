@@ -27,6 +27,11 @@ checks = {
         and "function copySource" in source
         and "copyText(value)" in source
     ),
+    "toggles diagram fill width": (
+        'data-mm-act="width"' in source
+        and "function toggleWidth" in source
+        and "mermaid-width-expanded" in source
+    ),
     "opens diagram popup with measured size": (
         'data-mm-act="popup"' in source
         and "kind: 'mermaidPopup'" in source

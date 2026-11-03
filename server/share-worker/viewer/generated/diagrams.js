@@ -105,8 +105,11 @@ window.MdpDiagrams = {
             const surface = svg.parentElement || svg;
             surface.style.transformOrigin = '0 0';
 
-            // Stable layout: figure claims height from the diagram's aspect ratio,
-            // capped by max-height so massive diagrams don't push the page.
+            // Stable layout: the figure keeps the column's width and claims
+            // height from the diagram's aspect ratio, capped by max-height
+            // so massive diagrams don't push the page. The cap leaves room
+            // for the stage padding, so a diagram narrower than the column
+            // draws at its natural size instead of scaling up.
             if (vbW > 0 && vbH > 0) {
                 figure.style.setProperty('--mm-aspect', vbW + ' / ' + vbH);
                 figure.style.setProperty('--mm-height', vbH + 'px');
@@ -234,7 +237,8 @@ window.MdpDiagrams = {
         const diagramHUD = makeNativeHUDReporter('diagramHUD', (figure) =>
             figure.classList.contains('mermaid-error') || !figure.querySelector('.mermaid svg') ? null : {
                 level: figure.querySelector('.mermaid-hud-level')?.textContent || '100%',
-                popup: !!figure.querySelector('[data-mm-act="popup"]')
+                popup: !!figure.querySelector('[data-mm-act="popup"]'),
+                expanded: figure.classList.contains('mermaid-width-expanded')
             });
         if (diagramHUD) {
             // No focus here: the click was on the host's glass, and
@@ -344,6 +348,23 @@ window.MdpDiagrams = {
             apply(figure, s);
         }
 
+        function toggleWidth(figure) {
+            const expanded = figure.classList.toggle('mermaid-width-expanded');
+            const btn = figure.querySelector('[data-mm-act="width"]');
+            if (btn) {
+                const label = expanded ? messages.fitDiagram : messages.fillWidth;
+                btn.setAttribute('aria-label', label);
+                btn.setAttribute('aria-pressed', String(expanded));
+                btn.setAttribute('title', label);
+            }
+            reset(figure);
+            requestAnimationFrame(() => {
+                cacheRect(figure);
+                window.dispatchEvent(new Event('md-preview-mermaid-rendered'));
+                if (diagramHUD?.target === figure) diagramHUD.refresh();
+            });
+        }
+
         function step(figure, factor) {
             const s = states.get(figure);
             if (!s) return;
@@ -431,6 +452,7 @@ window.MdpDiagrams = {
                 case 'in':    step(figure, 1.25); break;
                 case 'out':   step(figure, 0.8);  break;
                 case 'reset': reset(figure);      break;
+                case 'width': toggleWidth(figure); break;
                 case 'popup': openPopup(figure);  break;
                 case 'copy':  copySource(figure); break;
             }
@@ -462,7 +484,11 @@ window.MdpDiagrams = {
         const hudLabels = { out: messages.zoomOut, in: messages.zoomIn, reset: messages.resetZoom, copy: messages.copy };
         function labelHud(figure) {
             figure.querySelectorAll('.mermaid-hud [data-mm-act]').forEach((button) => {
-                const label = hudLabels[button.dataset.mmAct];
+                let label = hudLabels[button.dataset.mmAct];
+                if (button.dataset.mmAct === 'width') {
+                    label = figure.classList.contains('mermaid-width-expanded')
+                        ? messages.fitDiagram : messages.fillWidth;
+                }
                 if (!label) return;
                 button.setAttribute('aria-label', label);
                 if (button.hasAttribute('title')) button.title = label;
@@ -508,7 +534,9 @@ window.MdpDiagrams = {
     zoomIn: "Zoom In",
     resetZoom: "Reset zoom",
     copy: "Copy",
-    copied: "Copied"
+    copied: "Copied",
+    fillWidth: "Fill width",
+    fitDiagram: "Fit diagram"
 },
         ja: {
     errors: {
@@ -526,7 +554,9 @@ window.MdpDiagrams = {
     zoomIn: "拡大",
     resetZoom: "拡大\/縮小をリセット",
     copy: "コピー",
-    copied: "コピーしました"
+    copied: "コピーしました",
+    fillWidth: "幅に合わせる",
+    fitDiagram: "ダイアグラム全体を表示"
 },
         "zh-Hans": {
     errors: {
@@ -544,7 +574,9 @@ window.MdpDiagrams = {
     zoomIn: "放大",
     resetZoom: "重置缩放",
     copy: "拷贝",
-    copied: "已拷贝"
+    copied: "已拷贝",
+    fillWidth: "填满宽度",
+    fitDiagram: "适应图表"
 },
         pl: {
     errors: {
@@ -562,7 +594,9 @@ window.MdpDiagrams = {
     zoomIn: "Przybliż",
     resetZoom: "Wyzeruj powiększenie",
     copy: "Kopiuj",
-    copied: "Skopiowano"
+    copied: "Skopiowano",
+    fillWidth: "Wypełnij szerokość",
+    fitDiagram: "Dopasuj diagram"
 },
         fa: {
     errors: {
@@ -580,7 +614,9 @@ window.MdpDiagrams = {
     zoomIn: "بزرگ‌نمایی",
     resetZoom: "بازنشانی بزرگ‌نمایی",
     copy: "کپی",
-    copied: "کپی شد"
+    copied: "کپی شد",
+    fillWidth: "پر کردن عرض",
+    fitDiagram: "برازش نمودار"
 },
     },
 };
