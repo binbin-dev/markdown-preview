@@ -20,7 +20,7 @@ struct TextSizePicker: View {
     var body: some View {
         HStack(spacing: 2) {
             ForEach(TextSizeSetting.allCases, id: \.self) { size in
-                Button {
+                SettingsChoiceButton(isSelected: selection == size) {
                     selection = size
                 } label: {
                     Text(verbatim: "Aa")
@@ -34,9 +34,7 @@ struct TextSizePicker: View {
                         )
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
                 .accessibilityLabel(size.title)
-                .accessibilityAddTraits(selection == size ? [.isSelected] : [])
             }
         }
     }

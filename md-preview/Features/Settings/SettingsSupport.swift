@@ -51,6 +51,50 @@ extension View {
     }
 }
 
+/// One option in a custom choice control: the text-size samples, the
+/// appearance thumbnails, the theme cards, or a font row.
+///
+/// The system draws a focus ring around whichever button holds keyboard
+/// focus, and macOS does not give a plain button focus when it is clicked.
+/// The ring therefore stayed on the first option while the selection moved.
+/// This button takes focus when it is chosen, and again whenever its
+/// selection changes from elsewhere (⌘+ / ⌘−, the toolbar's A buttons), so
+/// the ring marks the selected option.
+struct SettingsChoiceButton<Label: View>: View {
+    let isSelected: Bool
+    /// Whether a selected option takes focus when the view first appears, so
+    /// a pane opens with its ring on the selection instead of on whichever
+    /// button macOS focused first. Off inside a sheet or gallery that already
+    /// opens with another primary action focused.
+    var claimsFocusOnAppear = true
+    let action: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        Button {
+            action()
+            isFocused = true
+        } label: {
+            label()
+        }
+        .buttonStyle(.plain)
+        .focused($isFocused)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .onAppear {
+            if claimsFocusOnAppear, isSelected {
+                isFocused = true
+            }
+        }
+        .onChange(of: isSelected) { _, selected in
+            if selected {
+                isFocused = true
+            }
+        }
+    }
+}
+
 /// An ⓘ button that shows the full explanation in a popover, for settings
 /// whose caption would otherwise run to several lines.
 struct SettingsInfoButton: View {

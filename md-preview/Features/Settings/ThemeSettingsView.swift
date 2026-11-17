@@ -113,17 +113,15 @@ struct ThemeSettingsView: View {
     private var appearancePicker: some View {
         HStack(spacing: 16) {
             ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                Button {
+                SettingsChoiceButton(isSelected: model.appearance == mode) {
                     model.appearance = mode
                 } label: {
                     AppearanceOptionView(title: mode.settingsTitle,
                                          mode: mode,
                                          isSelected: model.appearance == mode)
                 }
-                .buttonStyle(.plain)
                 .disabled(model.isAppearanceLocked)
                 .accessibilityLabel(mode.settingsTitle)
-                .accessibilityAddTraits(model.appearance == mode ? [.isSelected] : [])
             }
         }
     }

@@ -24,7 +24,9 @@ struct ThemePresetCard: View {
         let page = Self.color(hex: preset.palette.pageBackground)
         let text = Self.color(hex: preset.palette.text)
 
-        return Button(action: action) {
+        return SettingsChoiceButton(isSelected: isSelected,
+                                    claimsFocusOnAppear: false,
+                                    action: action) {
             VStack(spacing: 4) {
                 Text(verbatim: "Aa")
                     // The preset's own reading face, so the gallery shows
@@ -51,9 +53,7 @@ struct ThemePresetCard: View {
                             lineWidth: isSelected ? 2 : 1)
             )
         }
-        .buttonStyle(.plain)
         .accessibilityLabel(Text(L("theme_\(preset.name)", default: preset.name)))
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     /// Palette colours resolved once for the whole gallery. Parsing a hex

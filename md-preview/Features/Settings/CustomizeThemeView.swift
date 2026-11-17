@@ -233,7 +233,8 @@ struct CustomizeThemeView: View {
     }
 
     private func fontRow(_ setting: DocumentFontSetting) -> some View {
-        Button {
+        SettingsChoiceButton(isSelected: draft.documentFont == setting,
+                             claimsFocusOnAppear: false) {
             draft.documentFont = setting
         } label: {
             HStack {
@@ -248,8 +249,6 @@ struct CustomizeThemeView: View {
             .padding(.leading, 8)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(draft.documentFont == setting ? .isSelected : [])
     }
 
     // MARK: - Colors
