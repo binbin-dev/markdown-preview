@@ -52,8 +52,6 @@
 "Each color has a separate value for the Light and Dark appearance. Picking the default color removes the override." = "Jede Farbe hat einen separaten Wert für das helle und dunkle Erscheinungsbild. Durch Auswählen der Standardfarbe wird die Überschreibung entfernt.";
 "Reset Colors" = "Farben zurücksetzen";
 "Restores the default Normal theme." = "Stellt das Standard-Theme „Normal“ wieder her.";
-"Send anonymous crash reports" = "Anonyme Absturzberichte senden";
-"Crash reports contain diagnostic details such as stack traces and OS and app versions. They may include technical file paths; Markdown Preview does not deliberately attach document contents or personal information." = "Absturzberichte enthalten Diagnosedetails wie Stacktraces sowie Betriebssystem- und App-Versionen. Sie können technische Dateipfade enthalten; Markdown Preview hängt jedoch nicht absichtlich Dokumentinhalte oder personenbezogene Daten an.";
 "Share anonymous usage analytics" = "Anonyme Nutzungsanalysen teilen";
 "When enabled, Markdown Preview sends at most one event per day when the app becomes active, linked to a random installation identifier. It also sends the app version, macOS version, processor architecture, locale country or region, and system language. This is used only to count daily and monthly active installations, understand basic platform compatibility, and choose which languages to translate the app into. It does not send document contents, file names or paths, actions, screens, precise location, personal information, or advertising identifiers." = "Wenn diese Option aktiviert ist, sendet Markdown Preview höchstens ein Ereignis pro Tag, wenn die App aktiv wird, verknüpft mit einer zufälligen Installationskennung. Außerdem werden die App-Version, die macOS-Version, die Prozessorarchitektur, das Land oder die Region des Gebietsschemas und die Systemsprache gesendet. Dies wird ausschließlich verwendet, um täglich und monatlich aktive Installationen zu zählen, die grundlegende Plattformkompatibilität zu verstehen und zu entscheiden, in welche Sprachen die App übersetzt werden soll. Es werden keine Dokumentinhalte, Dateinamen oder -pfade, Aktionen, Bildschirme, genaue Standortdaten, personenbezogenen Informationen oder Werbe-IDs gesendet.";
 
@@ -397,9 +395,7 @@
 "Opening files" = "Dateien öffnen";
 "Takes effect after you reopen Markdown Preview." = "Wird wirksam, nachdem du Markdown Preview erneut geöffnet hast.";
 "Turn this off to keep every line break as written." = "Deaktiviere dies, um jeden Zeilenumbruch wie geschrieben beizubehalten.";
-"Crash reports" = "Absturzberichte";
 "Analytics" = "Analysen";
-"Contains technical details, not document contents." = "Enthält technische Details, keine Dokumentinhalte.";
 "At most one event a day, to count active installations." = "Höchstens ein Ereignis pro Tag, um aktive Installationen zu zählen.";
 "Details" = "Details";
 "Discord Community" = "Discord-Community";

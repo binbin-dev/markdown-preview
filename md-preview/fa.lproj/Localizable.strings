@@ -52,8 +52,6 @@
 "Each color has a separate value for the Light and Dark appearance. Picking the default color removes the override." = "هر رنگ مقدار جداگانه‌ای برای ظاهر روشن و تاریک دارد. انتخاب رنگ پیش‌فرض، مقدار جایگزین را حذف می‌کند.";
 "Reset Colors" = "بازنشانی رنگ‌ها";
 "Restores the default Normal theme." = "پوستهٔ عادی پیش‌فرض را بازیابی می‌کند.";
-"Send anonymous crash reports" = "ارسال گزارش‌های ناشناس خرابی";
-"Crash reports contain diagnostic details such as stack traces and OS and app versions. They may include technical file paths; Markdown Preview does not deliberately attach document contents or personal information." = "گزارش‌های خرابی شامل جزئیات تشخیصی مانند رد پشته و نسخه‌های سیستم‌عامل و برنامه هستند. آن‌ها ممکن است شامل مسیرهای فنی فایل باشند؛ Markdown Preview عمداً محتوای سند یا اطلاعات شخصی را پیوست نمی‌کند.";
 "Share anonymous usage analytics" = "اشتراک‌گذاری آمار ناشناس استفاده";
 "When enabled, Markdown Preview sends at most one event per day when the app becomes active, linked to a random installation identifier. It also sends the app version, macOS version, processor architecture, locale country or region, and system language. This is used only to count daily and monthly active installations, understand basic platform compatibility, and choose which languages to translate the app into. It does not send document contents, file names or paths, actions, screens, precise location, personal information, or advertising identifiers." = "وقتی فعال باشد، Markdown Preview حداکثر روزی یک رویداد هنگام فعال شدن برنامه ارسال می‌کند که به یک شناسهٔ نصب تصادفی مرتبط است. همچنین نسخهٔ برنامه، نسخهٔ macOS، معماری پردازنده، کشور یا منطقهٔ تنظیمات محلی و زبان سیستم را ارسال می‌کند. این اطلاعات فقط برای شمارش نصب‌های فعال روزانه و ماهانه، درک سازگاری پایهٔ پلتفرم و انتخاب زبان‌هایی که برنامه باید به آن‌ها ترجمه شود استفاده می‌شود. محتوای سندها، نام یا مسیر فایل‌ها، اقدامات، صفحه‌ها، موقعیت مکانی دقیق، اطلاعات شخصی یا شناسه‌های تبلیغاتی ارسال نمی‌شوند.";
 
@@ -399,9 +397,7 @@
 "Opening files" = "باز کردن فایل‌ها";
 "Takes effect after you reopen Markdown Preview." = "پس از باز کردن دوبارهٔ Markdown Preview اعمال می‌شود.";
 "Turn this off to keep every line break as written." = "برای حفظ همهٔ شکست‌های خط همان‌طور که نوشته شده‌اند، این را خاموش کنید.";
-"Crash reports" = "گزارش‌های خرابی";
 "Analytics" = "تحلیل‌ها";
-"Contains technical details, not document contents." = "شامل جزئیات فنی است، نه محتوای سند.";
 "At most one event a day, to count active installations." = "حداکثر یک رویداد در روز، برای شمارش نصب‌های فعال.";
 "Details" = "جزئیات";
 "Discord Community" = "انجمن Discord";

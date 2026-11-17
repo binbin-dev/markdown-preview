@@ -8,9 +8,9 @@
 //  State goes through `SettingsModel` rather than `@AppStorage` because these
 //  preferences aren't plain defaults: appearance lives in the app group shared
 //  with the Quick Look extension, fixed themes lock their appearance, content
-//  width clears its default key, crash reporting starts and stops the Sentry SDK, and
-//  anonymous usage analytics has its own capture lifecycle. Routing through
-//  the existing types keeps one source of truth.
+//  width clears its default key, and anonymous usage analytics has its own
+//  capture lifecycle. Routing through the existing types keeps one source of
+//  truth.
 //
 
 import Sparkle
@@ -129,13 +129,6 @@ final class SettingsModel {
             guard !isRestoringExternalValues else { return }
             UserDefaults.standard.set(opensMarkdownLinksInNewWindows,
                                       forKey: "MarkdownPreview.opensMarkdownLinksInNewWindows")
-        }
-    }
-
-    var sendsCrashReports: Bool {
-        didSet {
-            guard !isRestoringExternalValues, sendsCrashReports != oldValue else { return }
-            CrashReporter.isEnabled = sendsCrashReports
         }
     }
 
@@ -311,7 +304,6 @@ final class SettingsModel {
         isAlwaysOnTop = AlwaysOnTopPolicy.isEnabled
         opensDocumentsInTabs = TabOpeningPolicy.isEnabled
         opensMarkdownLinksInNewWindows = UserDefaults.standard.bool(forKey: "MarkdownPreview.opensMarkdownLinksInNewWindows")
-        sendsCrashReports = CrashReporter.isEnabled
         themeColors = ThemeColorsSetting.current
         sharesAnonymousUsageAnalytics = UsageAnalyticsReporter.isEnabled
         checksForUpdatesAutomatically = updater?.automaticallyChecksForUpdates ?? true
@@ -354,8 +346,8 @@ final class SettingsModel {
     }
 
     /// Re-reads values that menus, document zoom, a window's own toolbar,
-    /// Sparkle, the crash reporter, or usage analytics can change while the
-    /// shared Settings model remains alive.
+    /// Sparkle or usage analytics can change while the shared Settings model
+    /// remains alive.
     func refreshFromExternalSources() {
         isRestoringExternalValues = true
         defer { isRestoringExternalValues = false }
@@ -373,7 +365,6 @@ final class SettingsModel {
         isAlwaysOnTop = AlwaysOnTopPolicy.isEnabled
         opensDocumentsInTabs = TabOpeningPolicy.isEnabled
         opensMarkdownLinksInNewWindows = UserDefaults.standard.bool(forKey: "MarkdownPreview.opensMarkdownLinksInNewWindows")
-        sendsCrashReports = CrashReporter.isEnabled
         themeColors = ThemeColorsSetting.current
         sharesAnonymousUsageAnalytics = UsageAnalyticsReporter.isEnabled
         if let updater { refreshUpdateSettings(from: updater) }

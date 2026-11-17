@@ -179,21 +179,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
         // Nothing below is visible in the first frame. A document opened
         // from Finder arrives before this callback, so by now its window is
         // ordered front; give the first frame and WebKit's first paint the
-        // main thread before starting the updater and the crash reporter.
+        // main thread before starting the updater.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
             self?.startDeferredLaunchServices()
         }
     }
 
-    /// Sparkle and Sentry both do XPC and file work at start; neither is
-    /// needed for the first frame. Idempotent, so an early caller (Check for
-    /// Updates…) can run it ahead of the launch timer.
+    /// Sparkle does XPC and file work at start; none of it is needed for the
+    /// first frame. Idempotent, so an early caller (Check for Updates…) can
+    /// run it ahead of the launch timer.
     func startDeferredLaunchServices() {
         guard !didStartDeferredLaunchServices else { return }
         didStartDeferredLaunchServices = true
         LaunchSignposts.interval("deferredServices") {
             updaterController.startUpdater()
-            CrashReporter.start()
             // Capture launch settings before another instance can change
             // them while we're inactive, even if this user never opens the
             // Settings window. Creating the model reads every setting and

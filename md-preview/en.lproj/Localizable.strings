@@ -52,8 +52,6 @@
 "Each color has a separate value for the Light and Dark appearance. Picking the default color removes the override." = "Each color has a separate value for the Light and Dark appearance. Picking the default color removes the override.";
 "Reset Colors" = "Reset Colors";
 "Restores the default Normal theme." = "Restores the default Normal theme.";
-"Send anonymous crash reports" = "Send anonymous crash reports";
-"Crash reports contain diagnostic details such as stack traces and OS and app versions. They may include technical file paths; Markdown Preview does not deliberately attach document contents or personal information." = "Crash reports contain diagnostic details such as stack traces and OS and app versions. They may include technical file paths; Markdown Preview does not deliberately attach document contents or personal information.";
 "Share anonymous usage analytics" = "Share anonymous usage analytics";
 "When enabled, Markdown Preview sends at most one event per day when the app becomes active, linked to a random installation identifier. It also sends the app version, macOS version, processor architecture, locale country or region, and system language. This is used only to count daily and monthly active installations, understand basic platform compatibility, and choose which languages to translate the app into. It does not send document contents, file names or paths, actions, screens, precise location, personal information, or advertising identifiers." = "When enabled, Markdown Preview sends at most one event per day when the app becomes active, linked to a random installation identifier. It also sends the app version, macOS version, processor architecture, locale country or region, and system language. This is used only to count daily and monthly active installations, understand basic platform compatibility, and choose which languages to translate the app into. It does not send document contents, file names or paths, actions, screens, precise location, personal information, or advertising identifiers.";
 
@@ -399,9 +397,7 @@
 "Opening files" = "Opening files";
 "Takes effect after you reopen Markdown Preview." = "Takes effect after you reopen Markdown Preview.";
 "Turn this off to keep every line break as written." = "Turn this off to keep every line break as written.";
-"Crash reports" = "Crash reports";
 "Analytics" = "Analytics";
-"Contains technical details, not document contents." = "Contains technical details, not document contents.";
 "At most one event a day, to count active installations." = "At most one event a day, to count active installations.";
 "Details" = "Details";
 "Discord Community" = "Discord Community";

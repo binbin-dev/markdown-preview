@@ -12,18 +12,6 @@ struct PrivacySettingsView: View {
 
     var body: some View {
         Form {
-            LabeledContent(columnLabel("Crash reports")) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Toggle(L("Send anonymous crash reports"), isOn: $model.sendsCrashReports)
-                        SettingsInfoButton(L("Crash reports contain diagnostic details such as stack traces and OS and app versions. They may include technical file paths; Markdown Preview does not deliberately attach document contents or personal information."))
-                    }
-                    SettingsCaption(L("Contains technical details, not document contents."))
-                        .padding(.leading, 20)
-                }
-            }
-            .settingsGroupGap()
-
             LabeledContent(columnLabel("Analytics")) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
