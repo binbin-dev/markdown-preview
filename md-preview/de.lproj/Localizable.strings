@@ -144,6 +144,8 @@
 "Copy" = "Kopieren";
 "Copy Markdown source to clipboard" = "Markdown-Quelltext in die Zwischenablage kopieren";
 "Copied" = "Kopiert";
+"Fill width" = "Breite ausfüllen";
+"Fit diagram" = "Diagramm einpassen";
 "Edit" = "Bearbeiten";
 "Edit document" = "Dokument bearbeiten";
 "Stop editing and return to preview" = "Bearbeitung beenden und zur Vorschau zurückkehren";
@@ -496,6 +498,7 @@
 "Stop sharing this document?" = "Freigabe dieses Dokuments beenden?";
 "If you stop sharing, people with the link can no longer open this document, and its copy is deleted from the server." = "Wenn du die Freigabe beendest, können Personen mit dem Link dieses Dokument nicht mehr öffnen, und seine Kopie wird vom Server gelöscht.";
 "This document is too large to share as a link." = "Dieses Dokument ist zu groß, um es als Link freizugeben.";
+"**This document is too large to preview.**\n\nThe file is %1$@ and the preview limit is %2$@. Split it into smaller files, or open it in an editor that does not render Markdown." = "**Dieses Dokument ist zu groß für die Vorschau.**\n\nDie Datei ist %1$@ groß, das Limit für die Vorschau liegt bei %2$@. Teile sie in kleinere Dateien auf oder öffne sie in einem Editor, der Markdown nicht rendert.";
 "Too many links in a short time. Wait a minute, then try again." = "Zu viele Links in kurzer Zeit. Warte eine Minute und versuche es dann erneut.";
 "Sharing reached its daily limit. Try again after %@." = "Die Freigabe hat ihr tägliches Limit erreicht. Versuche es nach %@ erneut.";
 "You are offline. Connect to the internet, then try again." = "Du bist offline. Stelle eine Verbindung zum Internet her und versuche es dann erneut.";
