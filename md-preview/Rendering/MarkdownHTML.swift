@@ -280,6 +280,8 @@ nonisolated enum MarkdownHTML {
         /// The Markdown the article was rendered from; the page keeps it for
         /// copy-as-source and body swaps pass it along with the article.
         let markdown: String
+        /// Headings met during the walk that produced `articleHTML`.
+        let outline: [OutlineHeading]
         let containsMath: Bool
         let containsMermaid: Bool
         let containsCode: Bool
@@ -351,25 +353,32 @@ nonisolated enum MarkdownHTML {
                        pageTopClearance: CGFloat = 0,
                        chromeZoom: CGFloat = 1,
                        highlightsCode: Bool = true) -> RenderedHTML {
+        // A document past the limit is replaced before any parsing: the tree
+        // would cost roughly a hundred times the source, and WebKit would then
+        // have to lay it out. Rendering the message through this same pipeline
+        // keeps the page's theme, bridge and in-place swaps working.
+        let sourceBytes = markdown.utf8.count
+        let markdown = sourceBytes > DocumentSizePolicy.maximumPreviewBytes
+            ? DocumentSizePolicy.tooLargeMessage(bytes: sourceBytes)
+            : markdown
+
         let frontmatter = MarkdownFrontmatter.split(markdown)
         let body = frontmatter.body
-        let sourceLineOffset: Int
-        if frontmatter.raw != nil,
-           let bodyRange = markdown.range(of: body, options: .backwards) {
-            sourceLineOffset = markdown[..<bodyRange.lowerBound].count(where: \.isNewline)
-        } else {
-            sourceLineOffset = 0
-        }
+        let sourceLineOffset = frontmatter.bodyLineOffset
         let footnotes = extractFootnotes(from: body)
         let math = extractMath(from: footnotes.markdown)
-        let formatted = EscapingHTMLFormatter.format(
+        let formatted = EscapingHTMLFormatter.formatDetailed(
             math.processedMarkdown,
             sourceLineOffset: sourceLineOffset,
             sourceMarkdown: body,
             highlightsCode: highlightsCode,
-            strictLineBreaks: strictLineBreaks
+            strictLineBreaks: strictLineBreaks,
+            outlineTokenRestoration: OutlineTokenRestoration(
+                mathInlineOriginals: math.inlineOriginals,
+                footnoteReferenceOriginals: footnotes.referenceOriginals
+            )
         )
-        let mermaidResult = renderMermaidBlocks(in: formatted)
+        let mermaidResult = renderMermaidBlocks(in: formatted.html)
         let mathResult = renderMathBlocks(in: mermaidResult.html, with: math)
         let footnoteReferenceHTML = renderFootnoteReferences(in: mathResult.html, with: footnotes)
         let footnoteDefinitions = renderFootnoteDefinitions(
@@ -542,6 +551,7 @@ nonisolated enum MarkdownHTML {
             html: html,
             articleHTML: bodyHTML,
             markdown: markdown,
+            outline: formatted.outline,
             containsMath: containsMath,
             containsMermaid: containsMermaid,
             containsCode: containsCode,

@@ -43,6 +43,8 @@ final class MainSplitViewController: NSSplitViewController {
     private var sidebarCollapseObservation: NSKeyValueObservation?
     private var inspectorCollapseObservation: NSKeyValueObservation?
     var onLiveMetadataNeedsRefresh: (() -> Void)?
+    /// Name of the document whose render last drove the sidebar title.
+    private var currentDisplayFileName = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,6 +83,16 @@ final class MainSplitViewController: NSSplitViewController {
         addSplitViewItem(sidebar)
         addSplitViewItem(content)
         addSplitViewItem(inspector)
+
+        // The preview's parse already met every heading; hand that list to
+        // the sidebar instead of parsing the document a second time.
+        contentViewController?.renderedOutlineDidChange = { [weak self] outline in
+            guard let self else { return }
+            self.sidebarViewController?.refreshOutline(
+                outline: outline,
+                fileName: self.currentDisplayFileName
+            )
+        }
 
         sidebarCollapseObservation = sidebar.observe(\.isCollapsed, options: [.new]) { [weak self] _, _ in
             DispatchQueue.main.async { [weak self] in
@@ -129,13 +141,17 @@ final class MainSplitViewController: NSSplitViewController {
 
     func display(markdown: String, fileName: String, url: URL?, assetBaseURL: URL?,
                  renderImmediately: Bool = false) {
+        currentDisplayFileName = fileName
+        // Prepare the sidebar first: a small document renders synchronously
+        // when `renderImmediately` is set, and its outline callback must find
+        // the new file's reset state in place.
+        sidebarViewController?.display(fileName: fileName, fileURL: url)
         contentViewController?.display(
             markdown: markdown,
             sourceURL: url,
             assetBaseURL: assetBaseURL,
             renderImmediately: renderImmediately
         )
-        sidebarViewController?.display(markdown: markdown, fileName: fileName, fileURL: url)
         inspectorViewController?.setSelectedText(nil)
         inspectorViewController?.display(metadata: DocumentMetadata.make(url: url, markdown: markdown))
     }

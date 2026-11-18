@@ -26,29 +26,38 @@ extension DocumentMetadata {
         meta.fileURL = url
         meta.fileName = url?.lastPathComponent
             ?? NSLocalizedString("Untitled", comment: "Inspector file name when no document is open")
+        applyFileAttributes(to: &meta, url: url)
+
+        // The statistics below are a full pass each, and this runs on the main
+        // actor when a document opens. A document too large to preview is not
+        // worth stalling the window for; the file size and date above remain.
+        guard markdown.utf8.count <= DocumentSizePolicy.maximumPreviewBytes else {
+            return meta
+        }
 
         let split = MarkdownFrontmatter.split(markdown)
         if let raw = split.raw {
             meta.frontmatter = MarkdownFrontmatter.parse(raw, format: split.format ?? .yaml)
         }
         let body = split.body
-        let bodyLines = body.components(separatedBy: .newlines)
+        let bodyLines = body.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
 
         meta.characterCount = body.count
         meta.wordCount = wordCount(ofBody: body)
         meta.lineCount = body.isEmpty ? 0 : bodyLines.count
         meta.headingCount = bodyLines
-            .filter { $0.trimmingCharacters(in: .whitespaces).hasPrefix("#") }.count
+            .filter { $0.drop(while: \.isWhitespace).first == "#" }.count
         let totalRefs = max(0, body.components(separatedBy: "](").count - 1)
         meta.imageCount = max(0, body.components(separatedBy: "![").count - 1)
         meta.linkCount = max(0, totalRefs - meta.imageCount)
-
-        if let url,
-           let attrs = try? FileManager.default.attributesOfItem(atPath: url.path) {
-            meta.modifiedDate = attrs[.modificationDate] as? Date
-            meta.fileSize = (attrs[.size] as? NSNumber)?.int64Value
-        }
         return meta
+    }
+
+    private nonisolated static func applyFileAttributes(to meta: inout DocumentMetadata, url: URL?) {
+        guard let url,
+              let attrs = try? FileManager.default.attributesOfItem(atPath: url.path) else { return }
+        meta.modifiedDate = attrs[.modificationDate] as? Date
+        meta.fileSize = (attrs[.size] as? NSNumber)?.int64Value
     }
 
     /// The inspector's word count without the rest of `make`, for callers that

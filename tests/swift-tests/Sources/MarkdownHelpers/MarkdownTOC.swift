@@ -16,18 +16,15 @@ nonisolated struct TOCItem: Identifiable, Hashable, Sendable {
 
 nonisolated enum MarkdownTOC {
 
+    /// Parses Markdown for callers that hold only source text — live editor
+    /// updates. Full-document display reuses the headings the renderer already
+    /// met and calls `tree(from:)` instead, so the document is parsed once.
     static func parse(_ markdown: String) -> [TOCItem] {
         let headings = extractHeadings(from: markdown)
-        return buildTree(headings)
+        return tree(from: headings)
     }
 
-    private struct RawHeading {
-        let level: Int
-        let title: String
-        let sourceLine: Int
-    }
-
-    private static func extractHeadings(from markdown: String) -> [RawHeading] {
+    private static func extractHeadings(from markdown: String) -> [OutlineHeading] {
         // Share the renderer's CommonMark parsing so container nesting and fence
         // delimiters cannot turn code-block contents into outline entries.
         let split = MarkdownFrontmatter.split(markdown)
@@ -40,9 +37,9 @@ nonisolated enum MarkdownTOC {
     private struct HeadingCollector: MarkupWalker {
         let body: String
         let sourceLineOffset: Int
-        var headings: [RawHeading] = []
+        var headings: [OutlineHeading] = []
         // Only split when a heading has no range, which most documents never hit.
-        private lazy var bodyLines = Self.lines(of: body)
+        private lazy var bodyLines = OutlineHeadingText.lines(of: body)
 
         init(body: String, sourceLineOffset: Int) {
             self.body = body
@@ -51,73 +48,23 @@ nonisolated enum MarkdownTOC {
 
         mutating func visitHeading(_ heading: Heading) {
             // Keep empty headings too: IDs follow rendered heading order.
-            headings.append(RawHeading(
+            let line = OutlineHeadingText.startLine(
+                of: heading,
+                sourceLines: bodyLines,
+                previousHeadingLine: headings.last?.sourceLine,
+                sourceLineOffset: sourceLineOffset
+            )
+            headings.append(OutlineHeading(
                 level: heading.level,
-                title: Self.titleText(heading),
-                sourceLine: startLine(of: heading) + sourceLineOffset
+                title: OutlineHeadingText.plainText(of: heading),
+                sourceLine: line + sourceLineOffset
             ))
-        }
-
-        private mutating func startLine(of heading: Heading) -> Int {
-            if let range = heading.range { return range.lowerBound.line }
-            // cmark gives an empty ATX heading after whitespace (`- #`, `> #`, ` #`)
-            // an end before its start, and swift-markdown drops that range to nil.
-            // Only blank lines, container markers and link reference definitions can
-            // come between the previous block and the heading, so it is the first
-            // line after that block that ends the way these headings do.
-            let index = heading.indexInParent
-            let previous = index > 0 ? heading.parent?.child(at: index - 1) : nil
-            // A previous heading without a range is the last one collected, on one line.
-            let previousEnd = previous?.range?.upperBound.line
-                ?? (previous is Heading ? headings.last.map { $0.sourceLine - sourceLineOffset } : nil)
-            let first = previousEnd.map { $0 + 1 } ?? heading.parent?.range?.lowerBound.line ?? 1
-            return stride(from: first, through: bodyLines.count, by: 1)
-                .first { Self.endsInSpacedHeadingMarker(bodyLines[$0 - 1]) } ?? first
-        }
-
-        /// Whether a line ends in one to six `#` after a space or tab: the shape
-        /// that loses its range. `>#` and `- # ` keep theirs.
-        private static func endsInSpacedHeadingMarker(_ line: Substring.UTF8View) -> Bool {
-            let marks = line.reversed().prefix { $0 == UInt8(ascii: "#") }.count
-            guard (1...6).contains(marks) else { return false }
-            let before = line.dropLast(marks).last
-            return before == UInt8(ascii: " ") || before == UInt8(ascii: "\t")
-        }
-
-        /// Splits at LF, CR and CRLF, as CommonMark counts lines.
-        private static func lines(of text: String) -> [Substring.UTF8View] {
-            let utf8 = text.utf8
-            var lines: [Substring.UTF8View] = []
-            var start = utf8.startIndex
-            var index = start
-            while index != utf8.endIndex {
-                let byte = utf8[index]
-                guard byte == UInt8(ascii: "\n") || byte == UInt8(ascii: "\r") else {
-                    utf8.formIndex(after: &index)
-                    continue
-                }
-                lines.append(utf8[start..<index])
-                utf8.formIndex(after: &index)
-                if byte == UInt8(ascii: "\r"), index != utf8.endIndex, utf8[index] == UInt8(ascii: "\n") {
-                    utf8.formIndex(after: &index)
-                }
-                start = index
-            }
-            lines.append(utf8[start...])
-            return lines
-        }
-
-        private static func titleText(_ markup: Markup) -> String {
-            // InlineCode.plainText includes backticks; the outline shows its content.
-            if let code = markup as? InlineCode { return code.code }
-            if markup.childCount > 0 {
-                return markup.children.map { titleText($0) }.joined()
-            }
-            return (markup as? InlineMarkup)?.plainText ?? ""
         }
     }
 
-    private static func buildTree(_ headings: [RawHeading]) -> [TOCItem] {
+    /// Builds the outline tree from headings the renderer collected. This is
+    /// proportional to the number of headings, not to the document.
+    static func tree(from headings: [OutlineHeading]) -> [TOCItem] {
         final class Node {
             let level: Int
             let id: Int

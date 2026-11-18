@@ -22,7 +22,6 @@ final class SidebarViewController: NSViewController {
     private var projectNavigator: ProjectNavigatorView!
     private var roots: [TOCNode] = []
     private var titleItem: TitleItem?
-    private var lastRenderedMarkdown: String?
     private var lastRenderedFileName: String?
     private var lastRenderedOutline: [TOCItem] = []
     private var resetOutlineState = false
@@ -165,28 +164,26 @@ final class SidebarViewController: NSViewController {
         projectNavigator.accessoriesActive = currentMode == .files
     }
 
-    func display(markdown: String, fileName: String, fileURL: URL?) {
+    /// Prepares the sidebar for a document about to be displayed. The outline
+    /// arrives from the renderer — the preview's own parse — through
+    /// `refreshOutline(outline:fileName:)`.
+    func display(fileName: String, fileURL: URL?) {
         loadViewIfNeeded()
         // A newly opened document must not inherit another file's outline choices.
         if pendingFileURL != fileURL?.standardizedFileURL {
             resetOutlineState = true
         }
         setOpenFileURL(fileURL)
-        refreshOutline(markdown: markdown, fileName: fileName)
     }
 
-    /// Full document display may parse synchronously; live edits supply a
-    /// precomputed outline so parsing stays off the main thread.
-    func refreshOutline(markdown: String, fileName: String) {
-        guard resetOutlineState || markdown != lastRenderedMarkdown || fileName != lastRenderedFileName else { return }
-        let outline = MarkdownTOC.parse(markdown)
-        lastRenderedMarkdown = markdown
-        displayOutline(outline, fileName: fileName)
+    /// Applies headings the renderer collected during the walk that built the
+    /// preview, so the document is never parsed a second time for the sidebar.
+    func refreshOutline(outline: [OutlineHeading], fileName: String) {
+        displayOutline(MarkdownTOC.tree(from: outline), fileName: fileName)
     }
 
+    /// Live edits compute the outline away from the renderer and pass it here.
     func refreshOutline(outline: [TOCItem], fileName: String) {
-        // Invalidate the full-source cache: its value predates this live outline.
-        lastRenderedMarkdown = nil
         displayOutline(outline, fileName: fileName)
     }
 

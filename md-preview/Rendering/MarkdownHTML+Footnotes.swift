@@ -16,6 +16,9 @@ nonisolated extension MarkdownHTML {
         let markdown: String
         let definitions: [FootnoteDefinition]
         let references: [FootnoteReference]
+        /// The source text of each replaced reference (`[^1]`), so an outline
+        /// title can show it rather than its placeholder token.
+        let referenceOriginals: [String]
     }
 
     struct FootnoteDefinition {
@@ -49,7 +52,12 @@ nonisolated extension MarkdownHTML {
 
     static func extractFootnotes(from markdown: String) -> FootnoteExtraction {
         guard markdown.contains("[^") else {
-            return FootnoteExtraction(markdown: markdown, definitions: [], references: [])
+            return FootnoteExtraction(
+                markdown: markdown,
+                definitions: [],
+                references: [],
+                referenceOriginals: []
+            )
         }
 
         let split = splitFootnoteDefinitions(from: markdown)
@@ -67,6 +75,7 @@ nonisolated extension MarkdownHTML {
         var orderedDefinitions: [FootnoteDefinition] = []
         var referenceOrdinalsByNumber: [Int: Int] = [:]
         var references: [FootnoteReference] = []
+        var referenceOriginals: [String] = []
 
         let replacedReferences = replaceFootnoteReferenceMatches(in: afterInlineCode) { label, full in
             let key = normalizeFootnoteKey(label)
@@ -90,6 +99,7 @@ nonisolated extension MarkdownHTML {
             referenceOrdinalsByNumber[definition.number] = ordinal
             let token = "MdPreviewFootnoteRef\(references.count)Token"
             references.append(FootnoteReference(number: definition.number, ordinal: ordinal))
+            referenceOriginals.append(full)
             return token
         }
 
@@ -103,7 +113,8 @@ nonisolated extension MarkdownHTML {
         return FootnoteExtraction(
             markdown: restored,
             definitions: orderedDefinitions,
-            references: references
+            references: references,
+            referenceOriginals: referenceOriginals
         )
     }
 

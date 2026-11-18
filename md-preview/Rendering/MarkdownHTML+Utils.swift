@@ -53,6 +53,36 @@ nonisolated extension MarkdownHTML {
         rewrite(matchesOf: regex, in: source, captureGroup: 0, transform: transform)
     }
 
+    /// Like `replaceMatches`, but hands the closure the whole match as well as
+    /// the capture. Extraction needs both: the capture renders, the whole
+    /// match is what an outline title should show for the original syntax.
+    static func replaceMatchesWithFullMatch(of regex: NSRegularExpression,
+                                            in source: String,
+                                            transform: (String, String) -> String) -> String {
+        let nsSource = source as NSString
+        let matches = regex.matches(
+            in: source,
+            range: NSRange(location: 0, length: nsSource.length)
+        )
+        guard !matches.isEmpty else { return source }
+        var result = ""
+        result.reserveCapacity(source.count)
+        var cursor = 0
+        for match in matches {
+            result += nsSource.substring(with: NSRange(
+                location: cursor,
+                length: match.range.location - cursor
+            ))
+            result += transform(
+                nsSource.substring(with: match.range(at: 1)),
+                nsSource.substring(with: match.range)
+            )
+            cursor = match.range.location + match.range.length
+        }
+        result += nsSource.substring(from: cursor)
+        return result
+    }
+
     static func rewrite(matchesOf regex: NSRegularExpression,
                                 in source: String,
                                 captureGroup: Int,

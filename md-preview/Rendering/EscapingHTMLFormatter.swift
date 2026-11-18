@@ -96,8 +96,11 @@ nonisolated enum MarkdownHighlightSource {
     ]
 
     static func preparing(_ markdown: String) -> String {
+        // Check the flat string first: `Array(markdown)` costs about sixteen
+        // bytes per character, which is hundreds of megabytes for a large
+        // document without a single highlight delimiter pair.
+        guard markdown.contains("==") else { return markdown }
         let characters = Array(markdown)
-        guard characters.contains("=") else { return markdown }
 
         var protected = Array(repeating: false, count: characters.count)
         var blockBoundaries = Array(repeating: false, count: characters.count)
@@ -977,6 +980,9 @@ nonisolated enum MarkdownTableSource {
 // invisibly or get reinterpreted as HTML — see issue #33.
 nonisolated struct EscapingHTMLFormatter: MarkupWalker {
     private(set) var result = ""
+    /// Headings in document order, collected during the same walk that
+    /// builds the article so the outline never needs a second parse.
+    private(set) var outlineHeadings: [OutlineHeading] = []
 
     let options: HTMLFormatterOptions
     let sourceLineOffset: Int
@@ -984,8 +990,11 @@ nonisolated struct EscapingHTMLFormatter: MarkupWalker {
     /// syntax colors on the first frame. Off, the deferred in-page pass
     /// highlights after load.
     let highlightsCode: Bool
-    private let sourceLines: [String]
-    private let parsedSourceLines: [String]
+    /// Substrings share the source buffer; splitting a large document into
+    /// `[String]` lines used to copy the whole file twice.
+    private let sourceLines: [Substring]
+    private let parsedSourceLines: [Substring]
+    private let outlineTokenRestoration: OutlineTokenRestoration
 
     private let detectsBareURLs: Bool
 
@@ -1019,15 +1028,17 @@ nonisolated struct EscapingHTMLFormatter: MarkupWalker {
          sourceMarkdown: String = "",
          parsedMarkdown: String = "",
          highlightsCode: Bool = true,
-         strictLineBreaks: Bool = false) {
+         strictLineBreaks: Bool = false,
+         outlineTokenRestoration: OutlineTokenRestoration = OutlineTokenRestoration()) {
         self.strictLineBreaks = strictLineBreaks
         self.options = options
         self.sourceLineOffset = sourceLineOffset
         self.highlightsCode = highlightsCode
+        self.outlineTokenRestoration = outlineTokenRestoration
         // Escapes/entities can decode into a URL even without a literal scheme.
         self.detectsBareURLs = Self.mayContainHTTP(parsedMarkdown, includesMarkdownEscapes: true)
-        self.sourceLines = sourceMarkdown.components(separatedBy: "\n")
-        self.parsedSourceLines = parsedMarkdown.components(separatedBy: "\n")
+        self.sourceLines = OutlineHeadingText.lines(of: sourceMarkdown)
+        self.parsedSourceLines = OutlineHeadingText.lines(of: parsedMarkdown)
     }
 
     static func format(_ markdown: String,
@@ -1036,6 +1047,25 @@ nonisolated struct EscapingHTMLFormatter: MarkupWalker {
                        sourceMarkdown: String? = nil,
                        highlightsCode: Bool = true,
                        strictLineBreaks: Bool = false) -> String {
+        formatDetailed(
+            markdown,
+            options: options,
+            sourceLineOffset: sourceLineOffset,
+            sourceMarkdown: sourceMarkdown,
+            highlightsCode: highlightsCode,
+            strictLineBreaks: strictLineBreaks
+        ).html
+    }
+
+    /// The article HTML plus the headings met while building it.
+    static func formatDetailed(_ markdown: String,
+                               options: HTMLFormatterOptions = [],
+                               sourceLineOffset: Int = 0,
+                               sourceMarkdown: String? = nil,
+                               highlightsCode: Bool = true,
+                               strictLineBreaks: Bool = false,
+                               outlineTokenRestoration: OutlineTokenRestoration = OutlineTokenRestoration())
+        -> (html: String, outline: [OutlineHeading]) {
         let preparedMarkdown = MarkdownHighlightSource.preparing(markdown)
         let document = Document(parsing: preparedMarkdown)
         var walker = EscapingHTMLFormatter(
@@ -1044,10 +1074,11 @@ nonisolated struct EscapingHTMLFormatter: MarkupWalker {
             sourceMarkdown: sourceMarkdown ?? markdown,
             parsedMarkdown: preparedMarkdown,
             highlightsCode: highlightsCode,
-            strictLineBreaks: strictLineBreaks
+            strictLineBreaks: strictLineBreaks,
+            outlineTokenRestoration: outlineTokenRestoration
         )
         walker.visit(document)
-        return walker.result
+        return (walker.result, walker.outlineHeadings)
     }
 
     // MARK: Block elements
@@ -1072,9 +1103,7 @@ nonisolated struct EscapingHTMLFormatter: MarkupWalker {
         var blankLineCount = 0
         while precedingLineIndex >= 0,
               precedingLineIndex < sourceLines.count,
-              sourceLines[precedingLineIndex]
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty {
+              sourceLines[precedingLineIndex].allSatisfy(\.isWhitespace) {
             blankLineCount += 1
             precedingLineIndex -= 1
         }
@@ -1367,6 +1396,20 @@ nonisolated struct EscapingHTMLFormatter: MarkupWalker {
     }
 
     mutating func visitHeading(_ heading: Heading) {
+        let fallbackLines = sourceLines.count > 1 || !sourceLines[0].isEmpty
+            ? sourceLines
+            : parsedSourceLines
+        let line = OutlineHeadingText.startLine(
+            of: heading,
+            sourceLines: fallbackLines,
+            previousHeadingLine: outlineHeadings.last?.sourceLine,
+            sourceLineOffset: sourceLineOffset
+        )
+        outlineHeadings.append(OutlineHeading(
+            level: heading.level,
+            title: outlineTokenRestoration.restore(OutlineHeadingText.plainText(of: heading)),
+            sourceLine: line + sourceLineOffset
+        ))
         result += "<h\(heading.level)\(sourceLineAttribute(heading))>"
         descendInto(heading)
         result += "</h\(heading.level)>\n"
@@ -1615,7 +1658,7 @@ nonisolated struct EscapingHTMLFormatter: MarkupWalker {
               sourceLines.indices.contains(endIndex),
               startIndex <= endIndex else { return nil }
         return MarkdownTableSource.sourceRows(
-            from: Array(sourceLines[startIndex...endIndex])
+            from: sourceLines[startIndex...endIndex].map(String.init)
         )
     }
 

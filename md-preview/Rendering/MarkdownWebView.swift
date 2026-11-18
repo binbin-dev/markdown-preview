@@ -193,6 +193,8 @@ final class MarkdownWebView: NSView, WKNavigationDelegate {
     /// finishes. Unlike heightDidChange, this also fires when the new
     /// document happens to lay out at the same height as the old one.
     var contentDidReplace: (() -> Void)?
+    /// Headings the render that produced the article met along the way.
+    var outlineDidRender: (([OutlineHeading]) -> Void)?
     var selectedTextDidChange: ((String?) -> Void)?
     /// Whether the reader has selected article text, for Copy as Plain Text.
     private var hasSelectedText = false
@@ -643,6 +645,7 @@ final class MarkdownWebView: NSView, WKNavigationDelegate {
         // A newer display() bumped the generation while this render was
         // off-main — drop the stale result so the latest article wins.
         guard generation == renderGeneration else { return }
+        outlineDidRender?(rendered.outline)
         let fingerprint = RendererFingerprint(
             math: rendered.containsMath,
             mermaid: rendered.containsMermaid,

@@ -18,6 +18,9 @@ nonisolated extension MarkdownHTML {
         let blocks: [String]
         let blockLineCounts: [Int]
         let inlines: [String]
+        /// The source text of each inline, delimiters included, so an outline
+        /// title can show `$x$` rather than its placeholder token.
+        let inlineOriginals: [String]
     }
 
     struct MathRenderResult {
@@ -84,6 +87,7 @@ nonisolated extension MarkdownHTML {
         var blocks: [String] = []
         var blockLineCounts: [Int] = []
         var inlines: [String] = []
+        var inlineOriginals: [String] = []
         var protected: [String] = []
 
         // In a valid Markdown link label, `\[` and `\]` are bracket escapes,
@@ -184,25 +188,34 @@ nonisolated extension MarkdownHTML {
             matching: bracketedBlockMathRegex,
             from: afterMarkdownEscapedBlockMath
         )
-        let afterDollarInlineMath = replaceMatches(
+        let afterDollarInlineMath = replaceMatchesWithFullMatch(
             of: inlineMathRegex,
             in: afterBlockMath
-        ) { capture in
-            defer { inlines.append(capture) }
+        ) { capture, full in
+            defer {
+                inlines.append(capture)
+                inlineOriginals.append(full)
+            }
             return "MdPreviewMathInline\(inlines.count)Token"
         }
-        let afterMarkdownEscapedInlineMath = replaceMatches(
+        let afterMarkdownEscapedInlineMath = replaceMatchesWithFullMatch(
             of: markdownEscapedParenthesizedInlineMathRegex,
             in: afterDollarInlineMath
-        ) { capture in
-            defer { inlines.append(capture) }
+        ) { capture, full in
+            defer {
+                inlines.append(capture)
+                inlineOriginals.append(full)
+            }
             return "MdPreviewMathInline\(inlines.count)Token"
         }
-        let afterInlineMath = replaceMatches(
+        let afterInlineMath = replaceMatchesWithFullMatch(
             of: parenthesizedInlineMathRegex,
             in: afterMarkdownEscapedInlineMath
-        ) { capture in
-            defer { inlines.append(capture) }
+        ) { capture, full in
+            defer {
+                inlines.append(capture)
+                inlineOriginals.append(full)
+            }
             return "MdPreviewMathInline\(inlines.count)Token"
         }
 
@@ -217,7 +230,8 @@ nonisolated extension MarkdownHTML {
             processedMarkdown: processed,
             blocks: blocks,
             blockLineCounts: blockLineCounts,
-            inlines: inlines
+            inlines: inlines,
+            inlineOriginals: inlineOriginals
         )
     }
 

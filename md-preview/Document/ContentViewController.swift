@@ -73,6 +73,8 @@ final class ContentViewController: NSViewController {
     private static let stickyReleaseFraction: CGFloat = 1.0 / 3.0
 
     var activeHeadingDidChange: ((Int?) -> Void)?
+    /// Headings collected by the render that is about to become the article.
+    var renderedOutlineDidChange: (([OutlineHeading]) -> Void)?
     var selectedTextDidChange: ((String?) -> Void)?
     var zoomDidChange: ((CGFloat) -> Void)?
     var localMarkdownLinkActivated: ((URL) -> Void)?
@@ -108,6 +110,9 @@ final class ContentViewController: NSViewController {
             guard let self, self.webView.hasRequestedDocument else { return }
             LaunchSignposts.event("domReady")
             self.handleFirstDocumentPaint()
+        }
+        webView.outlineDidRender = { [weak self] outline in
+            self?.renderedOutlineDidChange?(outline)
         }
         NotificationCenter.default.addObserver(self, selector: #selector(updatePointerTracking),
                                                name: UserDefaults.didChangeNotification, object: nil)
