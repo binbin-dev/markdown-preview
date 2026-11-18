@@ -38,7 +38,7 @@ final class DocumentSnapshotCache {
 
     /// A background read and decode, started as soon as the document text is
     /// known.
-    final class Prefetch: @unchecked Sendable {
+    nonisolated final class Prefetch: @unchecked Sendable {
         let contentHash: String
         fileprivate let done = DispatchSemaphore(value: 0)
         fileprivate var image: CGImage?

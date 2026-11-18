@@ -26,7 +26,7 @@ struct UpdatePill: View {
     /// until the first step has laid out.
     @State private var rowWidth: CGFloat?
 
-    private static let space = "UpdatePill"
+    private nonisolated static let space = "UpdatePill"
     /// 40 points as drawn. The glass adds a 1-point rim outside its shape;
     /// the material capsule before macOS 26 draws inside it.
     private static var height: CGFloat {

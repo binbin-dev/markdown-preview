@@ -272,10 +272,7 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTo
             toolbar.allowsUserCustomization = true
             toolbar.autosavesConfiguration = false
             documentWindow.toolbar = toolbar
-            if let saved = UserDefaults.standard.dictionary(forKey: "MainToolbar.configuration")
-                ?? UserDefaults.standard.dictionary(forKey: "NSToolbar Configuration MainToolbar") {
-                toolbar.setConfiguration(saved)
-            }
+            restoreToolbarDisplayPreferences(toolbar)
             documentWindow.toolbarStyle = .automatic
             restoreToolbarItemOrder(toolbar)
             replaceZoomToolbarItemIfNeeded(in: toolbar)

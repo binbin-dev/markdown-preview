@@ -126,6 +126,17 @@ extension DocumentWindowController {
         }
     }
 
+    /// The item order is saved on its own; the display mode is the rest of
+    /// what every window shares.
+    static let toolbarDisplayModeKey = "MainToolbar.displayMode"
+
+    /// Restore the shared display mode into this window's independent toolbar.
+    func restoreToolbarDisplayPreferences(_ toolbar: NSToolbar) {
+        guard let saved = UserDefaults.standard.object(forKey: Self.toolbarDisplayModeKey) as? Int,
+              let mode = NSToolbar.DisplayMode(rawValue: UInt(saved)) else { return }
+        toolbar.displayMode = mode
+    }
+
     /// Save migrations immediately, before another window can restore them.
     func observeAndPersistToolbarPreferences(_ toolbar: NSToolbar) {
         toolbarItemOrderPersistenceReady = true
@@ -177,7 +188,8 @@ extension DocumentWindowController {
     /// The canonical item order is saved only on item edits or initialization.
     /// Display changes in another window must not overwrite that shared order.
     private func saveToolbarDisplayPreferences(_ toolbar: NSToolbar) {
-        UserDefaults.standard.set(toolbar.configuration, forKey: "MainToolbar.configuration")
+        UserDefaults.standard.set(Int(toolbar.displayMode.rawValue),
+                                  forKey: Self.toolbarDisplayModeKey)
     }
 
     func toolbar(_ toolbar: NSToolbar,
