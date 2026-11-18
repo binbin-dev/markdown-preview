@@ -78,7 +78,7 @@ final class SettingsWindowController: NSWindowController {
     func show() {
         // A fresh open starts without focus rings, even when ⌘, brought the
         // window up, and the controller is cached for the app's lifetime.
-        SettingsFocusRingVisibility.shared.reset()
+        FocusRingVisibility.shared.reset()
         // The controller is cached for the app's lifetime, so without this
         // a reopened window would resume on whatever pane was last visited.
         // Fresh opens always start on General.
@@ -121,19 +121,18 @@ final class SettingsTabViewController: NSTabViewController {
         transitionOptions = [.allowUserInteraction]
         for pane in SettingsPane.allCases {
             let host = NSHostingController(rootView: AnyView(EmptyView()))
-            host.rootView = AnyView(SettingsFocusEffect {
-                pane.content
-                    .padding(.horizontal, 30)
-                    .padding(.vertical, 24)
-                    .frame(width: settingsPaneWidth)
-                    .fixedSize(horizontal: false, vertical: true)
-                    // Picked up on the next switch to this pane; resizing the
-                    // window under an open pane would make its content jump.
-                    .onGeometryChange(for: CGSize.self) { $0.size } action: { [weak host] size in
-                        host?.preferredContentSize = size
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            })
+            host.rootView = AnyView(pane.content
+                .padding(.horizontal, 30)
+                .padding(.vertical, 24)
+                .frame(width: settingsPaneWidth)
+                .fixedSize(horizontal: false, vertical: true)
+                // Picked up on the next switch to this pane; resizing the
+                // window under an open pane would make its content jump.
+                .onGeometryChange(for: CGSize.self) { $0.size } action: { [weak host] size in
+                    host?.preferredContentSize = size
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .hidesFocusRingUntilKeyboard())
             // The hosting controller and view must not size anything
             // themselves: the view's minimum-size constraint would hold it at
             // the new pane's full height while the window is still animating.

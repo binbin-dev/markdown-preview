@@ -225,6 +225,7 @@ struct ShareLinkManageView: View {
         .frame(width: 440)
         .fixedSize(horizontal: false, vertical: true)
         .onExitCommand(perform: dismiss)
+        .hidesFocusRingUntilKeyboard()
     }
 
     private var header: some View {

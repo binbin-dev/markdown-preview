@@ -92,7 +92,8 @@ final class FavoriteFoldersTipPresenter {
             .tipBackground(.clear)
             // The last line's descender room reads as extra space below.
             .padding(.bottom, -3)
-            .frame(width: 300))
+            .frame(width: 300)
+            .hidesFocusRingUntilKeyboard())
         host.sizingOptions = .preferredContentSize
         let popover = NSPopover()
         popover.contentViewController = host

@@ -145,6 +145,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Install the input monitor and hide rings on any window that is
+        // already up, before the first frame the reader sees.
+        FocusRingVisibility.shared.reset()
         // Read this synchronously: currentAppleEvent is only meaningful while
         // AppKit is dispatching the launch event, not in the deferred prompt.
         let launchedAsLoginItem = LaunchReason.isLoginItemLaunch(NSAppleEventManager.shared().currentAppleEvent)

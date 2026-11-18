@@ -701,6 +701,7 @@ private struct StylingFormatPopover: View {
         }
         .padding(8)
         .frame(width: 200)
+        .hidesFocusRingUntilKeyboard()
     }
 
     private func rowLabel(_ row: (String, String, String)) -> some View {
@@ -773,6 +774,7 @@ private struct CodeLanguagePopover: View {
         .padding(8)
         .frame(width: 220, height: 358)
         .onAppear { filterFocused = true }
+        .hidesFocusRingUntilKeyboard()
     }
 
     private func section(_ title: LocalizedStringKey, languages: [CodeLanguageOption], key: String) -> some View {
@@ -848,6 +850,7 @@ private struct ListFormatPopover: View {
         }
         .padding(8)
         .frame(width: 200)
+        .hidesFocusRingUntilKeyboard()
     }
 }
 
@@ -889,6 +892,7 @@ private struct LinkFormatPopover: View {
         .padding(16)
         .frame(width: 320)
         .onAppear { textFocused = true }
+        .hidesFocusRingUntilKeyboard()
     }
 }
 
@@ -930,6 +934,7 @@ private struct HeadingFormatPopover: View {
         }
         .padding(8)
         .frame(width: 200)
+        .hidesFocusRingUntilKeyboard()
     }
 }
 

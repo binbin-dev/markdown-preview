@@ -98,6 +98,7 @@ struct InspectorView: View {
             case .properties: propertiesTab
             }
         }
+        .hidesFocusRingUntilKeyboard()
     }
 
     private var tabPicker: some View {

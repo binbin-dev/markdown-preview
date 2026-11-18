@@ -93,6 +93,7 @@ struct ThemesPopoverView: View {
         .onDisappear {
             hideScaleTask?.cancel()
         }
+        .hidesFocusRingUntilKeyboard()
     }
 
     // MARK: - Text size

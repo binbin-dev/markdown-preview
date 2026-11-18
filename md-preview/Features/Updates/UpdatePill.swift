@@ -74,6 +74,7 @@ struct UpdatePill: View {
         // A new step blurs its icon, line and buttons in over the old ones;
         // download progress inside a step does not.
         .animation(Self.stepAnimation, value: step)
+        .hidesFocusRingUntilKeyboard()
     }
 
     /// What the capsule shows: the model's step, or, while it fades out,

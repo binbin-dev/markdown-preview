@@ -111,6 +111,7 @@ struct CustomizeThemeView: View {
             .formStyle(.grouped)
         }
         .frame(width: Self.contentSize.width, height: Self.contentSize.height)
+        .hidesFocusRingUntilKeyboard()
     }
 
     /// Closes without touching the documents — nothing was applied. The ✗
