@@ -3,20 +3,24 @@
 //  md-preview
 //
 //  Focus rings follow the last input method: hidden after a mouse click and
-//  shown again once the keyboard is used.
+//  shown again once the keyboard moves focus.
 //
 
 import AppKit
 import ObjectiveC
 import SwiftUI
 
-/// Whether the last input came from the keyboard.
+/// Whether the keyboard is being used to move focus.
 ///
 /// macOS draws a focus ring around whatever holds keyboard focus, including
 /// when a view focuses a control as it appears or after a mouse click. The
 /// app should look calm until the reader actually navigates with the
 /// keyboard, so every SwiftUI surface turns the system focus effect off while
-/// the last input was a click, and back on after a key press.
+/// the last input was a click, and back on once Tab moves focus.
+///
+/// Typing and command shortcuts take the keyboard without navigating; they
+/// must not bring the rings back, or a single keystroke in the editor would
+/// light them up across every window until the next click.
 @Observable
 @MainActor
 final class FocusRingVisibility {
@@ -52,22 +56,44 @@ final class FocusRingVisibility {
     }
 
     private func note(_ event: NSEvent) {
-        let keyboard = event.type == .keyDown
-        let changed = isKeyboardActive != keyboard
-        isKeyboardActive = keyboard
-        guard changed || event.type != .keyDown else { return }
-        if changed {
-            // Before the event is dispatched, so a Tab restores the ring
-            // style in time for the newly focused control to draw it.
-            AppKitFocusRingPolicy.apply()
+        switch event.type {
+        case .keyDown:
+            // Only the keys that walk the focus ring count as navigation.
+            guard Self.movesFocus(event), !isKeyboardActive else { return }
+            isKeyboardActive = true
+        case .leftMouseDown, .rightMouseDown, .otherMouseDown:
+            let wasKeyboardActive = isKeyboardActive
+            isKeyboardActive = false
+            if wasKeyboardActive {
+                // Before the event is dispatched, so the click's own focus
+                // change does not draw a ring.
+                AppKitFocusRingPolicy.apply()
+            }
+            // After dispatch, to catch controls the event created — a
+            // popover opened by this click, for instance.
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    AppKitFocusRingPolicy.apply()
+                }
+            }
+            return
+        default:
+            return
         }
-        // After dispatch, to catch controls the event created — a popover
-        // opened by this click, for instance.
+        // Before the event is dispatched, so a Tab restores the ring style in
+        // time for the newly focused control to draw it.
+        AppKitFocusRingPolicy.apply()
         DispatchQueue.main.async {
             MainActor.assumeIsolated {
                 AppKitFocusRingPolicy.apply()
             }
         }
+    }
+
+    /// Tab and Shift-Tab, including the Control variants that walk the
+    /// window's focus ring; AppKit keeps 48 as the key code for all of them.
+    private static func movesFocus(_ event: NSEvent) -> Bool {
+        event.keyCode == 48
     }
 
     /// A fresh window starts without a ring even when a keyboard shortcut
