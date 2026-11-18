@@ -1,8 +1,8 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 # Builds build/Markdown Preview.app and signs it with a personal Apple
 # Development identity.
 #
-# Requires zsh: run the script directly (it uses zsh path modifiers).
+# Runs under bash (3.2 or newer); no zsh needed.
 #
 # Usage: scripts/build-app.sh [debug|release] [options]
 #   debug                 Bundle id doc.md-preview.dev
@@ -24,9 +24,32 @@
 # signing verification failed, 75 the app is still running.
 set -euo pipefail
 
-script_path=${0:A}
-script_dir=${script_path:h}
-project_dir=${script_dir:h}
+# Absolute path with "." and ".." folded and repeated slashes collapsed. The
+# path does not have to exist. Replaces zsh's ${path:A} modifier.
+absolute_path() {
+  local path=$1 rest part joined=
+  [[ $path == /* ]] || path="$PWD/$path"
+  rest=${path#/}
+  while [[ -n $rest ]]; do
+    part=${rest%%/*}
+    case $part in
+      ''|.) ;;
+      ..) joined=${joined%/*} ;;
+      *) joined="$joined/$part" ;;
+    esac
+    if [[ $rest == */* ]]; then
+      rest=${rest#*/}
+    else
+      rest=
+    fi
+  done
+  printf '%s\n' "${joined:-/}"
+}
+
+script_source=${BASH_SOURCE[0]:-$0}
+script_dir=$(cd -P -- "$(/usr/bin/dirname -- "$script_source")" && pwd)
+script_path="$script_dir/$(/usr/bin/basename -- "$script_source")"
+project_dir=$(/usr/bin/dirname -- "$script_dir")
 output_dir="$project_dir/build"
 configuration=release
 signing_identity=${MDP_CODESIGN_IDENTITY:-}
@@ -104,7 +127,7 @@ if [[ -z "$output_dir" ]]; then
   echo "--output needs a non-empty directory" >&2
   exit 64
 fi
-output_dir=${output_dir:A}
+output_dir=$(absolute_path "$output_dir")
 if [[ "$output_dir" == / ]]; then
   echo "Refusing to build into /" >&2
   exit 64
@@ -121,7 +144,7 @@ available_identities=$(
 )
 if [[ -z "$signing_identity" ]]; then
   signing_identity=$(
-    print -r -- "$available_identities" \
+    printf '%s\n' "$available_identities" \
       | /usr/bin/sed -n 's/.*"\(Apple Development:[^"]*\)".*/\1/p' \
       | /usr/bin/sed -n '1p'
   )
