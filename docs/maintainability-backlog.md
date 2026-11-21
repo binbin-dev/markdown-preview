@@ -38,6 +38,18 @@ cleanup. File and line numbers were accurate then.
    window, or cache the traversal and re-run only on window changes. Effort:
    medium. Risk: medium.
 
+## P2 — A test that fails on a non-English Mac
+
+`FileSearchRegressionTests.testScoresOrderingAndHighlightsMatchThePreviousImplementation`
+compares the exact order of equal-score results. `FileSearchMatcher.isOrderedBefore`
+breaks ties with `localizedStandardCompare`, which uses the process locale, and
+the recorded baseline was made under English collation. On this machine
+(`AppleLocale = zh_CN`) three tie pairs swap and the test fails every run; CI
+runs under an English locale and passes. The code, test and fixture are
+identical to `main`, so this predates the 2026-11-21 cleanup. Fix by pinning
+the locale for the test, or by asserting scores, match sets and per-file
+highlights while treating the order within a tie as locale-dependent.
+
 ## P3 — Single sources of truth
 
 7. **Markdown extension lists are duplicated and disagree.**
