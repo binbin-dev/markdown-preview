@@ -61,7 +61,6 @@
 "Light" = "Light";
 "Dark" = "Dark";
 "Content Width" = "Content Width";
-"Normal" = "Normal";
 "Full Width" = "Full Width";
 "Toggle Sidebar" = "Toggle Sidebar";
 "Hide Sidebar" = "Hide Sidebar";
@@ -112,7 +111,6 @@
 "Italic" = "Italic";
 "Strikethrough" = "Strikethrough";
 "Inline Code" = "Inline Code";
-"Link" = "Link";
 "Bulleted List" = "Bulleted List";
 "Numbered List" = "Numbered List";
 "Checklist" = "Checklist";

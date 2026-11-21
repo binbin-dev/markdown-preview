@@ -19,6 +19,9 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app
 
+      - name: Check localizations
+        run: python3 scripts/check-localizations.py
+
       - name: Run tests
         env:
           MDP_LAYOUT_ARTIFACTS: ${{ runner.temp }}/md-preview-layout-failures

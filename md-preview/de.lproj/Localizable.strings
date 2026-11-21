@@ -61,7 +61,6 @@
 "Light" = "Hell";
 "Dark" = "Dunkel";
 "Content Width" = "Inhaltsbreite";
-"Normal" = "Normal";
 "Full Width" = "Volle Breite";
 "Toggle Sidebar" = "Seitenleiste ein-/ausblenden";
 "Hide Sidebar" = "Seitenleiste ausblenden";
@@ -112,7 +111,6 @@
 "Italic" = "Kursiv";
 "Strikethrough" = "Durchgestrichen";
 "Inline Code" = "Inline-Code";
-"Link" = "Link";
 "Bulleted List" = "Aufzählungsliste";
 "Numbered List" = "Nummerierte Liste";
 "Checklist" = "Checkliste";

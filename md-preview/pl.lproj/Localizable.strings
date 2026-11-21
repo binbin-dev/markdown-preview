@@ -61,7 +61,6 @@
 "Light" = "Jasny";
 "Dark" = "Ciemny";
 "Content Width" = "Szerokość zawartości";
-"Normal" = "Standardowy";
 "Full Width" = "Pełna szerokość";
 "Toggle Sidebar" = "Pokaż lub ukryj pasek boczny";
 "Hide Sidebar" = "Ukryj pasek boczny";
@@ -112,7 +111,6 @@
 "Italic" = "Kursywa";
 "Strikethrough" = "Przekreślenie";
 "Inline Code" = "Kod w tekście";
-"Link" = "Łącze";
 "Bulleted List" = "Lista punktowana";
 "Numbered List" = "Lista numerowana";
 "Checklist" = "Lista kontrolna";
@@ -498,6 +496,7 @@
 "Stop sharing this document?" = "Zatrzymać udostępnianie tego dokumentu?";
 "If you stop sharing, people with the link can no longer open this document, and its copy is deleted from the server." = "Jeśli zatrzymasz udostępnianie, osoby mające link nie będą mogły już otworzyć tego dokumentu, a jego kopia zostanie usunięta z serwera.";
 "This document is too large to share as a link." = "Ten dokument jest za duży, aby udostępnić go jako link.";
+"**This document is too large to preview.**\n\nThe file is %1$@ and the preview limit is %2$@. Split it into smaller files, or open it in an editor that does not render Markdown." = "**Ten dokument jest zbyt duży, aby go wyświetlić w podglądzie.**\n\nPlik ma %1$@, a limit podglądu wynosi %2$@. Podziel go na mniejsze pliki lub otwórz w edytorze, który nie renderuje Markdownu.";
 "Too many links in a short time. Wait a minute, then try again." = "Zbyt wiele linków w krótkim czasie. Poczekaj minutę i spróbuj ponownie.";
 "Sharing reached its daily limit. Try again after %@." = "Udostępnianie osiągnęło dzienny limit. Spróbuj ponownie po %@.";
 "You are offline. Connect to the internet, then try again." = "Jesteś offline. Połącz się z internetem i spróbuj ponownie.";

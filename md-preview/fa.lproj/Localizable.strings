@@ -61,7 +61,6 @@
 "Light" = "روشن";
 "Dark" = "تاریک";
 "Content Width" = "عرض محتوا";
-"Normal" = "عادی";
 "Full Width" = "عرض کامل";
 "Toggle Sidebar" = "تغییر وضعیت نوار کناری";
 "Hide Sidebar" = "مخفی کردن نوار کناری";
@@ -112,7 +111,6 @@
 "Italic" = "مورب";
 "Strikethrough" = "خط‌خورده";
 "Inline Code" = "کد درون‌خطی";
-"Link" = "پیوند";
 "Bulleted List" = "فهرست نشانه‌دار";
 "Numbered List" = "فهرست شماره‌دار";
 "Checklist" = "چک‌لیست";
@@ -498,6 +496,7 @@
 "Stop sharing this document?" = "اشتراک‌گذاری این سند متوقف شود؟";
 "If you stop sharing, people with the link can no longer open this document, and its copy is deleted from the server." = "اگر اشتراک‌گذاری را متوقف کنید، افرادی که پیوند را دارند دیگر نمی‌توانند این سند را باز کنند و نسخهٔ آن از سرور حذف می‌شود.";
 "This document is too large to share as a link." = "این سند برای اشتراک‌گذاری با پیوند بیش از حد بزرگ است.";
+"**This document is too large to preview.**\n\nThe file is %1$@ and the preview limit is %2$@. Split it into smaller files, or open it in an editor that does not render Markdown." = "**این سند برای پیش‌نمایش بیش از حد بزرگ است.**\n\nحجم فایل %1$@ و محدودیت پیش‌نمایش %2$@ است. آن را به فایل‌های کوچک‌تر تقسیم کنید یا در ویرایشگری که Markdown را رندر نمی‌کند باز کنید.";
 "Too many links in a short time. Wait a minute, then try again." = "در مدت کوتاهی پیوندهای زیادی ساخته شده است. یک دقیقه صبر کنید و دوباره امتحان کنید.";
 "Sharing reached its daily limit. Try again after %@." = "اشتراک‌گذاری به سقف روزانه‌اش رسیده است. پس از %@ دوباره امتحان کنید.";
 "You are offline. Connect to the internet, then try again." = "آفلاین هستید. به اینترنت وصل شوید و دوباره امتحان کنید.";

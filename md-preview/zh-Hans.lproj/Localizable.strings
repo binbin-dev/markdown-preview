@@ -61,7 +61,6 @@
 "Light" = "浅色";
 "Dark" = "深色";
 "Content Width" = "内容宽度";
-"Normal" = "标准";
 "Full Width" = "全宽";
 "Toggle Sidebar" = "切换边栏";
 "Hide Sidebar" = "隐藏边栏";
@@ -112,7 +111,6 @@
 "Italic" = "斜体";
 "Strikethrough" = "删除线";
 "Inline Code" = "行内代码";
-"Link" = "链接";
 "Bulleted List" = "项目符号列表";
 "Numbered List" = "编号列表";
 "Checklist" = "任务列表";
