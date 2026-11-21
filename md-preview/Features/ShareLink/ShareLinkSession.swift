@@ -211,6 +211,14 @@ enum ShareLinkSession {
     /// digest, to compare with the last upload.
     private static func makePayload(fileURL: URL,
                                     markdown: String) async throws -> (SharePayload, digest: String?) {
+        // The renderer replaces a document past the preview limit with the
+        // "too large" placeholder. Sharing must not seal that placeholder as
+        // if it were the document, and a document that large cannot fit the
+        // upload anyway. Report it with the existing too-large message.
+        guard !DocumentSizePolicy.exceedsPreviewLimit(markdown) else {
+            throw ShareLinkCrypto.Failure.tooLarge
+        }
+
         let work = Task.detached(priority: .userInitiated) {
             let html = MarkdownHTML.render(markdown: markdown).articleHTML
             let local = ShareLinkAssets.collect(articleHTML: html,
