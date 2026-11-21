@@ -32,7 +32,10 @@ enum InlineLocalAssets {
             return Result(html: html, attachments: [:])
         }
 
-        let base = baseDirectory.standardizedFileURL
+        // Compare real locations: a symlink inside the document folder may
+        // point anywhere, and the containment check below must see its
+        // target, not the link's own path.
+        let base = baseDirectory.resolvingSymlinksInPath().standardizedFileURL
         var attachments: [String: Attachment] = [:]
         var srcToCID: [String: String] = [:]
         var cumulativeBytes = 0
@@ -152,8 +155,12 @@ enum InlineLocalAssets {
         if decoded.hasPrefix("/") != isAbsolute { return nil }
         if hasURLScheme(decoded) { return nil }
 
-        let base = baseDirectory.standardizedFileURL
-        let candidate = URL(fileURLWithPath: decoded, relativeTo: base).standardizedFileURL
+        let base = baseDirectory.resolvingSymlinksInPath().standardizedFileURL
+        // Resolve the link before deciding whether it is inside the folder:
+        // `pic.png -> ~/.ssh/id_ed25519` is outside, whatever its name says.
+        let candidate = URL(fileURLWithPath: decoded, relativeTo: base)
+            .standardizedFileURL
+            .resolvingSymlinksInPath()
         guard isDescendantOrSame(candidate, of: base) || isImageFile(candidate) else { return nil }
         return candidate
     }

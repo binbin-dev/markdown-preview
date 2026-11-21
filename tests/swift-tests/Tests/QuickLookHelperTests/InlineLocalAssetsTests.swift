@@ -502,6 +502,35 @@ final class InlineLocalAssetsTests: XCTestCase {
         }
     }
 
+    func testSymlinkInsideFolderToNonImageIsLeftAlone() throws {
+        let folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qltest-symlink-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+
+        let target = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qltest-secret-\(UUID().uuidString).txt")
+        try Data("secret token".utf8).write(to: target)
+        defer { try? FileManager.default.removeItem(at: target) }
+        try FileManager.default.createSymbolicLink(
+            at: folder.appendingPathComponent("pic.png"),
+            withDestinationURL: target
+        )
+
+        let html = #"<img src="pic.png">"#
+        let result = InlineLocalAssets.rewriteRelativeImages(
+            html: html,
+            baseDirectory: folder,
+            reader: { try Data(contentsOf: $0) }
+        )
+
+        // The link's own path is inside the folder; its target is outside and
+        // is not an image. Following the link before the containment check is
+        // what refuses it.
+        XCTAssertEqual(result.html, html)
+        XCTAssertTrue(result.attachments.isEmpty)
+    }
+
     func testDataURLConversionDoesNotReplaceCIDTextOutsideImageSources() {
         let result = InlineLocalAssets.rewriteRelativeImages(
             html: #"<p>cid:md-asset-0</p><img src="a.png">"#,
