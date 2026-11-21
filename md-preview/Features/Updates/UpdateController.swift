@@ -69,7 +69,7 @@ final class UpdateController {
     private var demoTask: Task<Void, Never>?
 
     private func playDemoDownload() {
-        demoTask = Task { [model, self] in
+        demoTask = Task { [weak self, model] in
             model.show(.downloading(0), close: { [weak self] in self?.demoTask?.cancel() })
             for percent in stride(from: 0, through: 100, by: 2) {
                 guard !Task.isCancelled else { return }

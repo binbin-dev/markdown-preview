@@ -58,6 +58,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
                        alignment: TextAlignmentSetting.current,
                        strictLineBreaks: StrictLineBreaksSetting.current)
         }
+
+        /// The model's view of the same settings. Comparing one SharedLook
+        /// with the other catches a change another instance saved, and
+        /// adding a shared setting updates both sides at once.
+        static func current(from model: SettingsModel) -> SharedLook {
+            SharedLook(preset: model.appliedPreset,
+                       appearance: model.appearance,
+                       colors: model.themeColors,
+                       font: model.documentFont,
+                       layout: model.readerLayout,
+                       alignment: model.textAlignment,
+                       strictLineBreaks: model.strictLineBreaks)
+        }
     }
 
     private var settingsWindowController: SettingsWindowController?
@@ -179,13 +192,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
         // can have changed a setting behind this one's back.
         guard hasFinishedLaunching, SettingsModel.hasLoadedShared else { return }
         let model = SettingsModel.shared
-        let changed = model.appliedPreset != ThemePreset.applied()
-            || model.appearance != AppearanceMode.current
-            || model.themeColors != ThemeColorsSetting.current
-            || model.documentFont != DocumentFontSetting.current
-            || model.readerLayout != ReaderLayoutSetting.current
-            || model.textAlignment != TextAlignmentSetting.current
-            || model.strictLineBreaks != StrictLineBreaksSetting.current
+        let changed = SharedLook.current(from: model) != SharedLook.current()
         let languageChanged = model.appLanguage != AppLanguageSetting.selection()
         guard changed || languageChanged else { return }
         model.refreshFromExternalSources()
@@ -640,20 +647,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenu
 
     func applyAutoSaveIntervalSetting(_ minutes: Int) {
         AutoSaveSetting.store(minutes: minutes)
-        NSDocumentController.shared.documents
-            .flatMap(\.windowControllers)
-            .compactMap { $0 as? DocumentWindowController }
-            .forEach { $0.applyAutoSaveIntervalSetting() }
+        documentWindowControllers.forEach { $0.applyAutoSaveIntervalSetting() }
     }
 
     /// Pushes theme colors chosen in Settings into every open document
     /// window — native backgrounds plus the loaded preview/editor pages.
     /// Cheap enough to run on every color-well tick.
     func applyThemeColorsSetting() {
-        NSDocumentController.shared.documents
-            .flatMap(\.windowControllers)
-            .compactMap { $0 as? DocumentWindowController }
-            .forEach { $0.applyThemeColorsSetting() }
+        documentWindowControllers.forEach { $0.applyThemeColorsSetting() }
     }
 
     func installCommandLineToolsFromSettings() {

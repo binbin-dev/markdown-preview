@@ -118,7 +118,8 @@ extension DocumentWindowController {
     }
 
     /// Restore shared preferences into this window's independent toolbar.
-    /// Keep a complete item order alongside AppKit's opaque configuration.
+    /// The item order and the display mode live in defaults shared by every
+    /// window; AppKit's own configuration is not read back.
     func restoreToolbarItemOrder(_ toolbar: NSToolbar) {
         let key = "MainToolbar.expandedItemIdentifiers"
         if let saved = UserDefaults.standard.stringArray(forKey: key) {
