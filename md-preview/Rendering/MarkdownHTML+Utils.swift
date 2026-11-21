@@ -59,34 +59,29 @@ nonisolated extension MarkdownHTML {
     static func replaceMatchesWithFullMatch(of regex: NSRegularExpression,
                                             in source: String,
                                             transform: (String, String) -> String) -> String {
-        let nsSource = source as NSString
-        let matches = regex.matches(
-            in: source,
-            range: NSRange(location: 0, length: nsSource.length)
-        )
-        guard !matches.isEmpty else { return source }
-        var result = ""
-        result.reserveCapacity(source.count)
-        var cursor = 0
-        for match in matches {
-            result += nsSource.substring(with: NSRange(
-                location: cursor,
-                length: match.range.location - cursor
-            ))
-            result += transform(
+        rewrite(matchesOf: regex, in: source) { match, nsSource in
+            transform(
                 nsSource.substring(with: match.range(at: 1)),
                 nsSource.substring(with: match.range)
             )
-            cursor = match.range.location + match.range.length
         }
-        result += nsSource.substring(from: cursor)
-        return result
     }
 
     static func rewrite(matchesOf regex: NSRegularExpression,
                                 in source: String,
                                 captureGroup: Int,
                                 transform: (String) -> String) -> String {
+        rewrite(matchesOf: regex, in: source) { match, nsSource in
+            transform(nsSource.substring(with: match.range(at: captureGroup)))
+        }
+    }
+
+    /// The shared walk: copies the text between matches and replaces each
+    /// match with the closure's result. `nsSource` is the UTF-16 view the
+    /// match ranges index into.
+    private static func rewrite(matchesOf regex: NSRegularExpression,
+                                in source: String,
+                                transform: (NSTextCheckingResult, NSString) -> String) -> String {
         let nsSource = source as NSString
         let matches = regex.matches(
             in: source,
@@ -101,7 +96,7 @@ nonisolated extension MarkdownHTML {
                 location: cursor,
                 length: match.range.location - cursor
             ))
-            result += transform(nsSource.substring(with: match.range(at: captureGroup)))
+            result += transform(match, nsSource)
             cursor = match.range.location + match.range.length
         }
         result += nsSource.substring(from: cursor)

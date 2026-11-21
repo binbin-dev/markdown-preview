@@ -520,7 +520,6 @@ final class DocumentWindowController: NSWindowController, NSWindowDelegate, NSTo
         guard (NSApp.delegate as? AppDelegate)?.hasFinishedLaunching == false,
               !Self.didPumpForFirstWindow else { return }
         Self.didPumpForFirstWindow = true
-        guard (NSApp.delegate as? AppDelegate)?.hasFinishedLaunching == false else { return }
         guard let split = documentWindow.contentViewController as? MainSplitViewController else { return }
         let deadline = CFAbsoluteTimeGetCurrent() + 0.45
         while !split.hasPaintedFirstDocument {

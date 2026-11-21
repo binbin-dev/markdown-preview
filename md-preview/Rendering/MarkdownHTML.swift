@@ -358,7 +358,7 @@ nonisolated enum MarkdownHTML {
         // have to lay it out. Rendering the message through this same pipeline
         // keeps the page's theme, bridge and in-place swaps working.
         let sourceBytes = markdown.utf8.count
-        let markdown = sourceBytes > DocumentSizePolicy.maximumPreviewBytes
+        let markdown = DocumentSizePolicy.exceedsPreviewLimit(markdown)
             ? DocumentSizePolicy.tooLargeMessage(bytes: sourceBytes)
             : markdown
 

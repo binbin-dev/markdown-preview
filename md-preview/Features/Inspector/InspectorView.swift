@@ -31,7 +31,7 @@ extension DocumentMetadata {
         // The statistics below are a full pass each, and this runs on the main
         // actor when a document opens. A document too large to preview is not
         // worth stalling the window for; the file size and date above remain.
-        guard markdown.utf8.count <= DocumentSizePolicy.maximumPreviewBytes else {
+        guard !DocumentSizePolicy.exceedsPreviewLimit(markdown) else {
             return meta
         }
 
