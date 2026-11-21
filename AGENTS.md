@@ -101,6 +101,48 @@ If the session has no Lokalise MCP server, or it cannot sign in, skip this:
 write the translations by hand, and say in the PR description that the new
 strings are not in Lokalise yet.
 
+**All languages land in the same commit.** Do not merge an English-only
+string and promise a translation follow-up: missing keys silently fall back
+to English (and the omission is invisible to anyone who does not read that
+language). `python3 scripts/check-localizations.py` compares every `.lproj`
+with `en` — keys, extra keys, and format specifiers — and CI runs it. Run it
+before committing a string change. The format check matters too: a translation
+that drops or renumbers `%@`/`%1$@` makes `String(format:)` print the wrong
+value or read a missing argument.
+
+## Before merging anything
+
+`docs/lessons-learned.md` records the failures these rules come from. They are
+not suggestions; a PR that skips one is not ready.
+
+1. **Reproduce first.** Perform the failing action before the change and again
+   after it. Paste both observations in the PR description. "It builds", "the
+   code path runs" and "the setting is applied" are not verification.
+2. **Name a demonstrated cause.** A fix commit says how the cause was proven
+   (`git range-diff`, an instrumented run, a failing test). "Probably the
+   rebase" is not a cause, and a speculative fix is not ready.
+3. **Run the input matrix.** For focus, keyboard, input or rendering changes,
+   verify click, Tab, Shift-Tab, typing, a command shortcut, scrolling keys,
+   and a newly opened window/popover on the base that will be merged. The
+   matrix is in `docs/lessons-learned.md` §1.3.
+4. **Translate in the same commit.** Every `.lproj` gets the new key, and
+   `python3 scripts/check-localizations.py` passes (CI also runs it).
+5. **Leave the build warning-free**, and run a shell script under the shell it
+   declares. A warning or a zsh-only path modifier is a defect, not a chore
+   for a follow-up commit.
+6. **Update the claim.** Any doc, comment, fixture or sample the change makes
+   false is updated in the same commit. Mark superseded design notes as
+   historical instead of leaving them to read as current.
+7. **Regenerate, don't hand-edit.** Generated files (for example
+   `server/share-worker/viewer/generated/*`) are produced by their documented
+   command and verified by their test.
+8. **One concern per commit.** A mechanical move or rename lands separately
+   from a behaviour change, so a reviewer and `git bisect` can attribute a
+   regression to one of them.
+9. **Leave no tooling residue.** No agent-created refs, snapshot commits, or
+   untracked scratch files. `git for-each-ref` should contain only
+   `refs/heads`, `refs/remotes` and `refs/tags`.
+
 ## Signing & secrets — do not touch without asking
 
 - `DEVELOPMENT_TEAM = 5P3TSMNV42` (`project.pbxproj`, both targets) is the

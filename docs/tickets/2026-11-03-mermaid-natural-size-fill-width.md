@@ -1,11 +1,12 @@
 # Ticket — Mermaid diagrams at natural size, with Fill width restored
 
-- **Status:** ready for implementation
+- **Status:** implemented on `feat/mermaid-natural-size-and-fill-width`
+  (2026-11-18); awaiting merge. The behaviour below is current for that branch.
 - **Created:** 2026-11-03
 - **Branch:** `feat/mermaid-natural-size-and-fill-width`
 - **Base:** `upstream/main` @ `78b0541`
-- **Design discussion:** `docs/diagram-sizing.md` (local, untracked — read it, do
-  not commit it)
+- **Design discussion:** `docs/diagram-sizing.md` (historical; describes the
+  code before this change)
 
 ## 1. Problem
 

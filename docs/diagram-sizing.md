@@ -1,8 +1,15 @@
 # Diagram sizing — discussion notes
 
-Status: draft, 2026-11-03. **Nothing implemented.** This captures the design
-discussion around how Mermaid diagrams are sized in the preview, triggered by
-the removal of the "Fill width" control.
+Status: **historical**, 2026-11-03. This captures the design discussion around
+how Mermaid diagrams are sized in the preview, triggered by the removal of the
+"Fill width" control.
+
+The outcome shipped on `feat/mermaid-natural-size-and-fill-width`: natural size
+inside the column, a `min(150vh, 1600px)` ceiling, and Fill width restored as a
+per-diagram in-flow toggle. The CSS and code references below describe the
+*pre-change* code, so read them as the starting point, not as current
+behaviour. Current behaviour is specified by
+`docs/tickets/2026-11-03-mermaid-natural-size-fill-width.md`.
 
 ## 1. What triggered this
 
