@@ -68,6 +68,10 @@
 		9A0209A02FA1100100092060 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		9A2040010000000000000002 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = "md-preview/en.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		9A2040010000000000000003 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "md-preview/zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		9A2040010000000000000005 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = "md-preview/de.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		9A2040010000000000000006 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = "md-preview/ja.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		9A2040010000000000000007 /* pl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = pl; path = "md-preview/pl.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		9A2040010000000000000008 /* fa */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fa; path = "md-preview/fa.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		9AC100010000000000000002 /* bin/markdown-preview */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "bin/markdown-preview"; sourceTree = "<group>"; };
 		9AF000000000000000000101 /* pele.global.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = pele.global.js; path = "md-preview/Vendor/Pele/pele.global.js"; sourceTree = "<group>"; };
 		9AF000000000000000000102 /* Pele-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "Pele-LICENSE.txt"; path = "md-preview/Vendor/Pele/Pele-LICENSE.txt"; sourceTree = "<group>"; };
@@ -293,6 +297,10 @@
 				en,
 				Base,
 				"zh-Hans",
+				de,
+				ja,
+				pl,
+				fa,
 			);
 			mainGroup = 9A0207B82FA0ED7C00092060;
 			minimizedProjectReferenceProxies = 1;
@@ -370,6 +378,10 @@
 			children = (
 				9A2040010000000000000002 /* en */,
 				9A2040010000000000000003 /* zh-Hans */,
+				9A2040010000000000000005 /* de */,
+				9A2040010000000000000006 /* ja */,
+				9A2040010000000000000007 /* pl */,
+				9A2040010000000000000008 /* fa */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
