@@ -1703,8 +1703,14 @@ final class MarkdownWebView: NSView, WKNavigationDelegate {
                 if Self.isMarkdownDocument(resolved) {
                     // fileURL(for:) works on the path alone and drops `#section`.
                     localMarkdownLinkActivated?(Self.reattachingFragment(of: url, to: resolved))
-                } else {
-                    NSWorkspace.shared.open(resolved)
+                } else if let openable = MarkdownAssetResolution.servableFile(for: url) {
+                    // A document sits next to anything. Open only the types the
+                    // page itself may display (image, audio/video, PDF): a
+                    // relative link to a `.command`, `.app` or executable must
+                    // not become a one-click launcher. `md-asset` and `file`
+                    // are blocked in `ExternalLinkPolicy`, so this is the only
+                    // branch that opens a local file, and it must stay narrow.
+                    NSWorkspace.shared.open(openable.url)
                 }
             } else if url.scheme != MarkdownAssetScheme.scheme {
                 ExternalLinkOpener.open(url, window: window)

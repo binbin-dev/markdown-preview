@@ -312,6 +312,22 @@ final class MermaidDiagramPopup: NSObject, WKNavigationDelegate {
         pendingNavigation = webView?.loadHTMLString(html, baseURL: nil)
     }
 
+    /// The popup page is local, but a diagram can contain an SVG link. Send
+    /// a click through the app's external-link policy instead of letting
+    /// WebKit navigate this view to the web on its own.
+    func webView(_ webView: WKWebView,
+                 decidePolicyFor navigationAction: WKNavigationAction,
+                 decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
+        guard navigationAction.navigationType == .linkActivated else {
+            decisionHandler(.allow)
+            return
+        }
+        decisionHandler(.cancel)
+        if let url = navigationAction.request.url {
+            ExternalLinkOpener.open(url, window: webView.window)
+        }
+    }
+
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         guard let navigation, navigation === pendingNavigation else { return }
         Task { @MainActor [weak self] in
