@@ -75,7 +75,7 @@ final class ShareViewerKitTests: XCTestCase {
     }
 
     /// The viewer's languages, named as the app's .lproj folders.
-    private static let languages = ["en", "ja", "zh-Hans", "pl", "fa"]
+    private static let languages = ["en", "de", "ja", "zh-Hans", "pl", "fa"]
 
     private static func javaScriptKey(_ language: String) -> String {
         language.contains("-") ? MarkdownHTML.javaScriptStringLiteral(language) : language
@@ -126,6 +126,41 @@ final class ShareViewerKitTests: XCTestCase {
                     XCTAssertNotNil(strings[text], "\(language) has no translation for \(text.debugDescription)")
                 }
             }
+        }
+    }
+
+    /// `viewer/strings.js` is hand-written, so it can drift from the app's
+    /// languages the way the generated files cannot. Every app language needs
+    /// a block, and every block needs the same keys as English (a missing key
+    /// leaves that label blank instead of falling back).
+    func testSharePageStringsCoverEveryAppLanguage() throws {
+        let url = TestVendor.repositoryRoot
+            .appendingPathComponent("server/share-worker/viewer/strings.js")
+        let source = try String(contentsOf: url, encoding: .utf8)
+
+        var blocks: [String: Set<String>] = [:]
+        var current: String?
+        for line in source.split(separator: "\n", omittingEmptySubsequences: false) {
+            let indent = line.prefix(while: { $0 == " " }).count
+            let trimmed = line.drop(while: { $0 == " " })
+            if indent == 2, trimmed.hasSuffix("{") {
+                let name = trimmed.prefix(while: { $0 != ":" })
+                    .trimmingCharacters(in: CharacterSet(charactersIn: "\" "))
+                current = name
+                blocks[name] = []
+            } else if indent == 2, trimmed.hasPrefix("}") {
+                current = nil
+            } else if indent == 4, let current, let colon = trimmed.firstIndex(of: ":") {
+                blocks[current, default: []].insert(String(trimmed[..<colon]))
+            }
+        }
+
+        let english = try XCTUnwrap(blocks["en"])
+        XCTAssertFalse(english.isEmpty)
+        for language in Self.languages {
+            let keys = try XCTUnwrap(blocks[language],
+                                     "viewer/strings.js has no \(language) block")
+            XCTAssertEqual(keys, english, "viewer/strings.js \(language) keys differ from en")
         }
     }
 

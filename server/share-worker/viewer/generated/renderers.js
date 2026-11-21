@@ -556,6 +556,12 @@ window.MdpRenderers = {
     copyCode: "Copy code",
     codeCopied: "Code copied"
 },
+        de: {
+    wrapCode: "Code umbrechen",
+    unwrapCode: "Codeumbruch entfernen",
+    copyCode: "Code kopieren",
+    codeCopied: "Code kopiert"
+},
         ja: {
     wrapCode: "コードを折り返す",
     unwrapCode: "コードの折り返しを解除",

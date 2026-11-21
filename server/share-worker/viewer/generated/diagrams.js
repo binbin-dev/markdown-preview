@@ -538,6 +538,26 @@ window.MdpDiagrams = {
     fillWidth: "Fill width",
     fitDiagram: "Fit diagram"
 },
+        de: {
+    errors: {
+        'unsupported-diagram': "Dieser Diagrammtyp wird nicht unterstützt.",
+        syntax: "Das Diagramm enthält einen Syntaxfehler.",
+        semantic: "Das Diagramm ist ungültig.",
+        limit: "Das Diagramm ist zu groß zum Zeichnen."
+    },
+    generic: "Das Diagramm konnte nicht gezeichnet werden.",
+    position: "Zeile %d, Spalte %d",
+    empty: "Dieses Diagramm ist leer.",
+    emptyHint: "Leeres Diagramm. Klicken, um Mermaid-Quelltext hinzuzufügen.",
+    unavailable: "Mermaid-Renderer ist nicht verfügbar.\n\n".trim(),
+    zoomOut: "Verkleinern",
+    zoomIn: "Vergrößern",
+    resetZoom: "Zoom zurücksetzen",
+    copy: "Kopieren",
+    copied: "Kopiert",
+    fillWidth: "Breite ausfüllen",
+    fitDiagram: "Diagramm einpassen"
+},
         ja: {
     errors: {
         'unsupported-diagram': "この種類のダイアグラムには対応していません。",
