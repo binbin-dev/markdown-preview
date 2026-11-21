@@ -139,6 +139,27 @@ good, but a reviewer cannot tell which edit caused a regression, and a
 installer extraction in this cleanup, for example), before or after the
 behaviour change, so its diff can be read as "the same code in a new place".
 
+### 1.10 A second reader found the boundary cases the authors missed
+
+A review pass over the finished branch, by an agent that had not written it,
+found defects that the existing tests did not:
+
+- a relative link to a local non-Markdown file went straight to
+  `NSWorkspace.open`, so a document next to a `.command` was a one-click
+  launcher;
+- sharing a document just over the 5 MB preview limit sealed the "too large to
+  preview" placeholder as the document;
+- Quick Look followed a symlink before checking containment, and its
+  `Localizable.strings` group had only English and Simplified Chinese;
+- the test target held a real copy of `MarkdownTOC.swift` instead of the
+  symlink every other shared helper uses, so the branch edited both;
+- `scripts/check-math-html.py` pointed at a file that had moved, and no
+  workflow ran it.
+
+These are not exotic: each is the boundary of a feature that was verified on
+its happy path. Budget a review pass with fresh eyes before merging, and give
+it the boundary cases, not the feature description.
+
 ## 2. What should not have been merged
 
 Each item is a concrete merge that should have been blocked or changed:
@@ -154,7 +175,9 @@ Each item is a concrete merge that should have been blocked or changed:
 - local tooling refs left in the repository (1.7);
 - a renderer limit discovered by a user instead of a boundary test (1.8);
 - a commit that mixes a mechanical refactor with a behaviour change, so
-  neither can be reviewed or bisected on its own (1.9).
+  neither can be reviewed or bisected on its own (1.9);
+- a feature merged after a review by its author only, without a pass at the
+  boundaries (1.10).
 
 ## 3. Gates now in place
 
