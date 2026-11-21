@@ -105,8 +105,9 @@ strings are not in Lokalise yet.
 string and promise a translation follow-up: missing keys silently fall back
 to English (and the omission is invisible to anyone who does not read that
 language). `python3 scripts/check-localizations.py` compares every `.lproj`
-with `en` — keys, extra keys, and format specifiers — and CI runs it. Run it
-before committing a string change. The format check matters too: a translation
+with `en` — keys, extra keys, duplicate keys, and format specifiers — and
+checks that Quick Look's variant group in `project.pbxproj` lists every
+language. CI runs it. Run it before committing a string change. The format check matters too: a translation
 that drops or renumbers `%@`/`%1$@` makes `String(format:)` print the wrong
 value or read a missing argument.
 

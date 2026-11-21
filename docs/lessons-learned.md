@@ -181,8 +181,11 @@ Each item is a concrete merge that should have been blocked or changed:
 
 ## 3. Gates now in place
 
-- `python3 scripts/check-localizations.py` — key and format-specifier parity
-  for every `.lproj`; runs in `swift-tests.yml`.
+- `python3 scripts/check-localizations.py` — key, duplicate-key and
+  format-specifier parity for every `.lproj`, plus Quick Look's variant-group
+  membership; runs in `swift-tests.yml`.
+- `python3 scripts/check-math-html.py` and `check-mermaid-html.py` — renderer
+  smoke checks, now run in `swift-tests.yml` so they cannot rot silently.
 - `ShareViewerKitTests` — regenerates and verifies the share viewer's
   `generated/*` assets, so they cannot drift from the Swift renderer.
 - The existing Swift test suite and the performance workflow.

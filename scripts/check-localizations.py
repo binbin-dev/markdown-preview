@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Checks that every localization carries the same keys and format specifiers.
+"""Checks that every localization carries the same keys and format specifiers,
+and that Quick Look's localization group includes every language.
 
 A feature commit that adds a user-facing string must add it to every
 `.lproj` in the same commit. When it does not, the app silently falls back to
@@ -131,6 +132,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("md-preview"),
                         help="directory containing the .lproj folders")
+    parser.add_argument("--project", type=Path,
+                        default=Path("md-preview.xcodeproj/project.pbxproj"),
+                        help="Xcode project whose Quick Look localization group to check")
     args = parser.parse_args()
 
     dirs = localization_dirs(args.root)
@@ -156,6 +160,20 @@ def main() -> int:
             for key in duplicate_keys(path):
                 problems.append(f"{table}: {language} repeats {key!r}")
         problems.extend(compare_table(table, loaded))
+
+    # The app target picks up the .lproj folders through its synchronized
+    # group, but Quick Look has an explicit Localizable.strings variant group:
+    # a language missing there falls back to English in the extension even
+    # though the app ships the translation.
+    if args.project.is_file():
+        project = args.project.read_text(encoding="utf-8")
+        for language in sorted(languages):
+            needle = f'path = "md-preview/{language}.lproj/Localizable.strings"'
+            if needle not in project:
+                problems.append(
+                    f"{args.project}: Quick Look's Localizable.strings group "
+                    f"has no {language} entry"
+                )
 
     if problems:
         print("Localization checks failed:")
