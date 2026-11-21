@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""Static smoke checks for math (KaTeX) support in MarkdownHTML.swift."""
+"""Static smoke checks for math (KaTeX) support in the Markdown renderer."""
 from pathlib import Path
 import sys
 
-source = Path("md-preview/MarkdownHTML.swift").read_text()
+source = "\n".join(
+    Path(path).read_text()
+    for path in (
+        "md-preview/Rendering/MarkdownHTML.swift",
+        "md-preview/Rendering/MarkdownHTML+Math.swift",
+        "md-preview/Rendering/MarkdownHTML+KaTeX.swift",
+        "md-preview/Rendering/MarkdownHTML+Stylesheet.swift",
+    )
+)
 checks = {
     "extracts inline $...$ math": "inlineMathRegex" in source,
     "extracts block $$...$$ math": "blockMathRegex" in source,

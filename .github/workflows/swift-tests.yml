@@ -22,6 +22,11 @@ jobs:
       - name: Check localizations
         run: python3 scripts/check-localizations.py
 
+      - name: Check renderer smoke tests
+        run: |
+          python3 scripts/check-math-html.py
+          python3 scripts/check-mermaid-html.py
+
       - name: Run tests
         env:
           MDP_LAYOUT_ARTIFACTS: ${{ runner.temp }}/md-preview-layout-failures
